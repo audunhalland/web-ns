@@ -1,8 +1,9 @@
-use crate::attribute_format::AttributeFormat;
+use crate::attribute_fmt::AttrFormat;
 
 pub struct InternalAttr {
     pub attribute: &'static str,
     pub property: &'static str,
+    pub format: AttrFormat,
 }
 
 impl PartialEq<InternalAttr> for InternalAttr {

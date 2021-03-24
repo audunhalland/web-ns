@@ -1,8 +1,6 @@
 pub mod attr;
 pub mod attr_value;
 
-mod attr_type;
-mod internal;
 mod macros;
 
 mod schema {

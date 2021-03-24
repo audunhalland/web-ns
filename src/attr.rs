@@ -1,11 +1,15 @@
-use crate::internal;
+pub mod attr_impl;
+pub mod attr_type;
+
 use crate::schema;
 use crate::Schema;
+
+use attr_impl::*;
 
 pub enum AttributeValue {}
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Attribute(AttrAlloc);
+pub struct Attribute(attr_impl::AttrImpl);
 
 ///
 /// A web attribute.
@@ -16,8 +20,8 @@ impl Attribute {
     ///
     pub fn attribute(&self) -> &str {
         match &self.0 {
-            AttrAlloc::Internal(attr) => attr.attribute,
-            AttrAlloc::Data(attr) => &attr.strbuf[..attr.buf_property_start],
+            AttrImpl::Internal(attr) => attr.attribute,
+            AttrImpl::Data(attr) => &attr.strbuf[..attr.buf_property_start],
         }
     }
 
@@ -26,22 +30,10 @@ impl Attribute {
     ///
     pub fn property(&self) -> &str {
         match &self.0 {
-            AttrAlloc::Internal(attr) => attr.property,
-            AttrAlloc::Data(attr) => &attr.strbuf[attr.buf_property_start..],
+            AttrImpl::Internal(attr) => attr.property,
+            AttrImpl::Data(attr) => &attr.strbuf[attr.buf_property_start..],
         }
     }
-}
-
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-enum AttrAlloc {
-    Internal(&'static internal::InternalAttr),
-    Data(Box<DataAttr>),
-}
-
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-struct DataAttr {
-    strbuf: String,
-    buf_property_start: usize,
 }
 
 ///
@@ -51,7 +43,7 @@ struct DataAttr {
 pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
     match schema {
         Schema::Html5 => match schema::html::attrs::internal_attr_by_name(attribute) {
-            Some(internal_attr) => Some(Attribute(AttrAlloc::Internal(internal_attr))),
+            Some(internal_attr) => Some(Attribute(AttrImpl::Internal(internal_attr))),
             None => {
                 if attribute.len() > 5
                     && unicase::UniCase::new(&attribute[..5]) == unicase::UniCase::new("data-")
@@ -62,7 +54,7 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
                         attribute.chars().nth(5).unwrap().to_uppercase(),
                         &attribute[6..]
                     );
-                    Some(Attribute(AttrAlloc::Data(Box::new(DataAttr {
+                    Some(Attribute(AttrImpl::Data(Box::new(DataAttr {
                         strbuf,
                         buf_property_start: attribute.len(),
                     }))))
@@ -77,7 +69,7 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
 pub fn parse_property(property: &str, schema: Schema) -> Option<Attribute> {
     match schema {
         Schema::Html5 => match schema::html::attrs::internal_attr_by_property(property) {
-            Some(internal_attr) => Some(Attribute(AttrAlloc::Internal(internal_attr))),
+            Some(internal_attr) => Some(Attribute(AttrImpl::Internal(internal_attr))),
             None => None,
         },
     }

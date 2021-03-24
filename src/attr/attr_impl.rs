@@ -1,4 +1,10 @@
-use crate::attr_type::AttrType;
+use super::attr_type::AttrType;
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum AttrImpl {
+    Internal(&'static InternalAttr),
+    Data(Box<DataAttr>),
+}
 
 pub struct InternalAttr {
     pub attribute: &'static str,
@@ -29,4 +35,11 @@ impl Ord for InternalAttr {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.attribute.cmp(other.attribute)
     }
+}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct DataAttr {
+    pub strbuf: String,
+    pub buf_property_start: usize,
+    // attr_type: AttrType,
 }

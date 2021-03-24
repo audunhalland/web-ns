@@ -1,16 +1,16 @@
-
-pub mod attribute;
+pub mod attr;
+pub mod attr_value;
 
 mod attr_type;
-mod macros;
 mod internal;
+mod macros;
 
 mod schema {
     pub mod html;
 }
 
 pub enum Schema {
-    Html5
+    Html5,
 }
 
 #[cfg(test)]

@@ -3,7 +3,7 @@
 ///
 pub struct AttrType {
     pub quantifier: Quantifier,
-    pub primitives: &'static[PrimitiveType],
+    pub primitives: &'static [PrimitiveType],
 }
 
 ///
@@ -31,5 +31,5 @@ pub enum Quantifier {
     One,
     CommaSeparated,
     SpaceSeparated,
-    CommaOrSpaceSeparated
+    CommaOrSpaceSeparated,
 }

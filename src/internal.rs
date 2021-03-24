@@ -1,10 +1,8 @@
-use crate::attr_type::AttrFormat;
 use crate::attr_type::AttrType;
 
 pub struct InternalAttr {
     pub attribute: &'static str,
     pub property: &'static str,
-    pub format: AttrFormat,
     pub attr_type: AttrType,
 }
 

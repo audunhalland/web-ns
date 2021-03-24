@@ -1,26 +1,6 @@
-pub enum AttrFormat {
-    String,
-
-    // The property is boolean. The default value of this property is false, so it can be omitted
-    Bool,
-
-    BoolOrEmptyString,
-
-    // The property is a boolean. The default value of this property is something other than false, so false must persist. The value can hold a string (as is the case with ariaChecked and its 'mixed' value)
-    OverloadedBool,
-
-    // The property is a boolean. The default value of this property is something other than false, so false must persist. The value can hold a string (as is the case with ariaChecked and its 'mixed' value)
-    BooleanIsh,
-
-    // CommaSeparated,
-    // SpaceSeparated,
-
-    Enum,
-
-    // The property is number. These values can sometimes hold a string
-    Number,
-}
-
+///
+/// The runtime type of an attribute.
+///
 pub struct AttrType {
     pub quantifier: Quantifier,
     pub primitives: &'static[PrimitiveType],
@@ -30,34 +10,23 @@ pub struct AttrType {
 /// Type for an attribute value
 ///
 pub enum PrimitiveType {
-    // Empty value, usually means "true"
-    Empty,
+    // A boolean property: false if omitted, true if specified without value.
+    Boolean,
+    // The explicit value "true":
     True,
+    // The explicit value "false":
     False,
-    Enum(EnumType),
     // Any string:
     String,
+    // The empty string
+    EmptyString,
     // Any number:
     Number,
-
-    // FAKE VALUES, REMOVE!!!
-    Bool,
-
-    BoolOrEmptyString,
-
-    // The property is a boolean. The default value of this property is something other than false, so false must persist. The value can hold a string (as is the case with ariaChecked and its 'mixed' value)
-    OverloadedBool,
-
-    // The property is a boolean. The default value of this property is something other than false, so false must persist. The value can hold a string (as is the case with ariaChecked and its 'mixed' value)
-    BooleanIsh,
-
-    // The property is number. These values can sometimes hold a string
 }
 
-pub enum EnumType {
-    Mixed,
-}
-
+///
+/// The way an attribute value may be quantified
+///
 pub enum Quantifier {
     One,
     CommaSeparated,

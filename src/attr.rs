@@ -43,10 +43,10 @@ impl Attribute {
         value::encode(value, self.attr_type())
     }
 
-    fn attr_type(&self) -> &AttrType {
+    fn attr_type(&self) -> AttrType {
         match &self.0 {
-            AttrImpl::Internal(attr) => &attr.attr_type,
-            AttrImpl::Data(attr) => &attr.attr_type,
+            AttrImpl::Internal(attr) => attr.attr_type,
+            AttrImpl::Data(attr) => attr.attr_type,
         }
     }
 }
@@ -80,9 +80,8 @@ impl Ord for Attribute {
 ///
 /// A typed attribute value.
 ///
-#[derive(Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum AttributeValue {
-    Empty,
     True,
     False,
     String(String),

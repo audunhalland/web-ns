@@ -1,19 +1,19 @@
 pub mod attr_impl;
 pub mod attr_type;
+mod value;
 
 use crate::schema;
 use crate::Schema;
 
 use attr_impl::*;
-
-pub enum AttributeValue {}
-
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Attribute(attr_impl::AttrImpl);
+use attr_type::*;
 
 ///
 /// A web attribute.
 ///
+#[derive(Clone)]
+pub struct Attribute(attr_impl::AttrImpl);
+
 impl Attribute {
     ///
     /// Access the markup attribute name of this attribute.
@@ -34,6 +34,59 @@ impl Attribute {
             AttrImpl::Data(attr) => &attr.strbuf[attr.buf_property_start..],
         }
     }
+
+    // FIXME: proper error type
+    pub fn encode_value<S>(&self, value: Option<S>) -> Result<AttributeValue, crate::Error>
+    where
+        S: Into<String> + AsRef<str>,
+    {
+        value::encode(value, self.attr_type())
+    }
+
+    fn attr_type(&self) -> &AttrType {
+        match &self.0 {
+            AttrImpl::Internal(attr) => &attr.attr_type,
+            AttrImpl::Data(attr) => &attr.attr_type,
+        }
+    }
+}
+
+impl PartialEq<Attribute> for Attribute {
+    fn eq(&self, other: &Self) -> bool {
+        self.attribute() == other.attribute()
+    }
+}
+
+impl Eq for Attribute {}
+
+impl std::hash::Hash for Attribute {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.attribute().hash(state);
+    }
+}
+
+impl PartialOrd for Attribute {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.attribute().partial_cmp(other.attribute())
+    }
+}
+
+impl Ord for Attribute {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.attribute().cmp(other.attribute())
+    }
+}
+
+///
+/// A typed attribute value.
+///
+#[derive(Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
+pub enum AttributeValue {
+    Empty,
+    True,
+    False,
+    String(String),
+    Multi(Vec<String>),
 }
 
 ///
@@ -57,6 +110,7 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
                     Some(Attribute(AttrImpl::Data(Box::new(DataAttr {
                         strbuf,
                         buf_property_start: attribute.len(),
+                        attr_type: AttrType(flags::STRING),
                     }))))
                 } else {
                     None

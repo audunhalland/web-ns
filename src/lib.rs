@@ -1,5 +1,4 @@
 pub mod attr;
-pub mod attr_value;
 
 mod macros;
 
@@ -9,6 +8,12 @@ mod schema {
 
 pub enum Schema {
     Html5,
+}
+
+// FIXME: Proper error impl
+#[derive(Debug)]
+pub enum Error {
+    Dang,
 }
 
 #[cfg(test)]

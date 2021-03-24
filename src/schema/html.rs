@@ -1,460 +1,372 @@
 pub mod attrs {
     // mustUseProperty: 'checked', 'multiple', 'muted', 'selected'],
+
     crate::define_attrs!(
-        (abbr, "abbr", "abbr", One, String),
-        (accept, "accept", "accept", CommaSeparated, String),
+        (abbr, "abbr", "abbr", STRING),
+        (accept, "accept", "accept", COMMA_SEP | STRING),
         (
             accept_charset,
             "accept-charset",
             "acceptCharset",
-            SpaceSeparated,
-            String
+            SPACE_SEP | STRING
         ),
-        (access_key, "accesskey", "accessKey", SpaceSeparated, String),
-        (action, "action", "action", One, String),
-        (allow, "allow", "allow", One, String),
+        (access_key, "accesskey", "accessKey", SPACE_SEP | STRING),
+        (action, "action", "action", STRING),
+        (allow, "allow", "allow", STRING),
         (
             allow_full_screen,
             "allowfullscreen",
             "allowFullScreen",
-            One,
-            Boolean
+            BOOL
         ),
         (
             allow_payment_request,
             "allowpaymentrequest",
             "allowPaymentRequest",
-            One,
-            Boolean
+            BOOL
         ),
-        (
-            allow_user_media,
-            "allowusermedia",
-            "allowUserMedia",
-            One,
-            Boolean
-        ),
-        (alt, "alt", "alt", One, String),
-        (as_, "as", "as", One, String),
-        (async_, "async", "async", One, Boolean),
-        (
-            auto_capitalize,
-            "autocapitalize",
-            "autoCapitalize",
-            One,
-            String
-        ),
+        (allow_user_media, "allowusermedia", "allowUserMedia", BOOL),
+        (alt, "alt", "alt", STRING),
+        (as_, "as", "as", STRING),
+        (async_, "async", "async", BOOL),
+        (auto_capitalize, "autocapitalize", "autoCapitalize", STRING),
         (
             auto_complete,
             "autocomplete",
             "autoComplete",
-            SpaceSeparated,
-            String
+            SPACE_SEP | STRING
         ),
-        (auto_focus, "autofocus", "autoFocus", One, Boolean),
-        (auto_play, "autoplay", "autoPlay", One, Boolean),
-        (capture, "capture", "capture", One, Boolean),
-        (charset, "charset", "charSet", One, String),
-        (checked, "checked", "checked", One, Boolean),
-        (cite, "cite", "cite", One, String),
-        (class_name, "class", "className", SpaceSeparated, String),
-        (cols, "cols", "cols", One, Number),
-        (colspan, "colspan", "colSpan", One, String),
-        (content, "content", "content", One, String),
+        (auto_focus, "autofocus", "autoFocus", BOOL),
+        (auto_play, "autoplay", "autoPlay", BOOL),
+        (capture, "capture", "capture", BOOL),
+        (charset, "charset", "charSet", STRING),
+        (checked, "checked", "checked", BOOL),
+        (cite, "cite", "cite", STRING),
+        (class_name, "class", "className", SPACE_SEP | STRING),
+        (cols, "cols", "cols", NUMBER),
+        (colspan, "colspan", "colSpan", STRING),
+        (content, "content", "content", STRING),
         (
             contente_ditable,
             "contenteditable",
             "contentEditable",
-            One,
-            True | EmptyString | False
+            TRUE | EMPTY_STRING | FALSE
         ),
-        (controls, "controls", "controls", One, Boolean),
+        (controls, "controls", "controls", BOOL),
         (
             controls_list,
             "controlslist",
             "controlsList",
-            SpaceSeparated,
-            String
+            SPACE_SEP | STRING
         ),
-        (coords, "coords", "coords", CommaSeparated, String),
-        (cross_origin, "crossorigin", "crossOrigin", One, String),
-        (data, "data", "data", One, String),
-        (date_time, "datetime", "dateTime", One, String),
-        (decoding, "decoding", "decoding", One, String),
-        (default, "default", "default", One, Boolean),
-        (defer, "defer", "defer", One, Boolean),
-        (dir, "dir", "dir", One, String),
-        (dir_name, "dirname", "dirName", One, String),
-        (disabled, "disabled", "disabled", One, Boolean),
-        (download, "download", "download", One, Boolean | String),
-        (draggable, "draggable", "draggable", One, True | False),
-        (enc_type, "enctype", "encType", One, String),
-        (enter_key_hint, "enterkeyhint", "enterKeyHint", One, String),
-        (form, "form", "form", One, String),
-        (form_action, "formaction", "formAction", One, String),
-        (form_enc_type, "formenctype", "formEncType", One, String),
-        (form_method, "formmethod", "formMethod", One, String),
-        (
-            form_no_validate,
-            "formnovalidate",
-            "formNoValidate",
-            One,
-            Boolean
-        ),
-        (form_target, "formtarget", "formTarget", One, String),
-        (headers, "headers", "headers", SpaceSeparated, String),
-        (height, "height", "height", One, Number),
-        (hidden, "hidden", "hidden", One, Boolean),
-        (high, "high", "high", One, Number),
-        (href, "href", "href", One, String),
-        (href_lang, "hreflang", "hrefLang", One, String),
-        (html_for, "for", "htmlFor", SpaceSeparated, String),
-        (
-            http_equiv,
-            "http-equiv",
-            "httpEquiv",
-            SpaceSeparated,
-            String
-        ),
-        (id, "id", "id", One, String),
-        (image_sizes, "imagesizes", "imageSizes", One, String),
+        (coords, "coords", "coords", COMMA_SEP | STRING),
+        (cross_origin, "crossorigin", "crossOrigin", STRING),
+        (data, "data", "data", STRING),
+        (date_time, "datetime", "dateTime", STRING),
+        (decoding, "decoding", "decoding", STRING),
+        (default, "default", "default", BOOL),
+        (defer, "defer", "defer", BOOL),
+        (dir, "dir", "dir", STRING),
+        (dir_name, "dirname", "dirName", STRING),
+        (disabled, "disabled", "disabled", BOOL),
+        (download, "download", "download", BOOL | STRING),
+        (draggable, "draggable", "draggable", TRUE | FALSE),
+        (enc_type, "enctype", "encType", STRING),
+        (enter_key_hint, "enterkeyhint", "enterKeyHint", STRING),
+        (form, "form", "form", STRING),
+        (form_action, "formaction", "formAction", STRING),
+        (form_enc_type, "formenctype", "formEncType", STRING),
+        (form_method, "formmethod", "formMethod", STRING),
+        (form_no_validate, "formnovalidate", "formNoValidate", BOOL),
+        (form_target, "formtarget", "formTarget", STRING),
+        (headers, "headers", "headers", SPACE_SEP | STRING),
+        (height, "height", "height", NUMBER),
+        (hidden, "hidden", "hidden", BOOL),
+        (high, "high", "high", NUMBER),
+        (href, "href", "href", STRING),
+        (href_lang, "hreflang", "hrefLang", STRING),
+        (html_for, "for", "htmlFor", SPACE_SEP | STRING),
+        (http_equiv, "http-equiv", "httpEquiv", SPACE_SEP | STRING),
+        (id, "id", "id", STRING),
+        (image_sizes, "imagesizes", "imageSizes", STRING),
         (
             image_src_set,
             "imagesrcset",
             "imageSrcSet",
-            CommaSeparated,
-            String
+            COMMA_SEP | STRING
         ),
-        (input_mode, "inputmode", "inputMode", One, String),
-        (integrity, "integrity", "integrity", One, String),
-        (is, "is", "is", One, String),
-        (is_map, "ismap", "isMap", One, Boolean),
-        (item_id, "itemid", "itemId", One, String),
-        (item_prop, "itemprop", "itemProp", SpaceSeparated, String),
-        (item_ref, "itemref", "itemRef", SpaceSeparated, String),
-        (item_scope, "itemscope", "itemScope", One, Boolean),
-        (item_type, "itemtype", "itemType", SpaceSeparated, String),
-        (kind, "kind", "kind", One, String),
-        (label, "label", "label", One, String),
-        (lang, "lang", "lang", One, String),
-        (language, "language", "language", One, String),
-        (list, "list", "list", One, String),
-        (loading, "loading", "loading", One, String),
-        (loop_, "loop", "loop", One, Boolean),
-        (low, "low", "low", One, Number),
-        (manifest, "manifest", "manifest", One, String),
-        (max, "max", "max", One, String),
-        (max_length, "maxlength", "maxLength", One, Number),
-        (media, "media", "media", One, String),
-        (method, "method", "method", One, String),
-        (min, "min", "min", One, String),
-        (min_length, "minlength", "minLength", One, Number),
-        (multiple, "multiple", "multiple", One, Boolean),
-        (muted, "muted", "muted", One, Boolean),
-        (name, "name", "name", One, String),
-        (nonce, "nonce", "nonce", One, String),
-        (no_module, "nomodule", "noModule", One, Boolean),
-        (no_validate, "novalidate", "noValidate", One, Boolean),
-        (on_abort, "onabort", "onAbort", One, String),
-        (on_after_print, "onafterprint", "onAfterPrint", One, String),
-        (on_aux_click, "onauxclick", "onAuxClick", One, String),
-        (
-            on_before_print,
-            "onbeforeprint",
-            "onBeforePrint",
-            One,
-            String
-        ),
-        (
-            on_before_unload,
-            "onbeforeunload",
-            "onBeforeUnload",
-            One,
-            String
-        ),
-        (on_blur, "onblur", "onBlur", One, String),
-        (on_cancel, "oncancel", "onCancel", One, String),
-        (on_can_play, "oncanplay", "onCanPlay", One, String),
+        (input_mode, "inputmode", "inputMode", STRING),
+        (integrity, "integrity", "integrity", STRING),
+        (is, "is", "is", STRING),
+        (is_map, "ismap", "isMap", BOOL),
+        (item_id, "itemid", "itemId", STRING),
+        (item_prop, "itemprop", "itemProp", SPACE_SEP | STRING),
+        (item_ref, "itemref", "itemRef", SPACE_SEP | STRING),
+        (item_scope, "itemscope", "itemScope", BOOL),
+        (item_type, "itemtype", "itemType", SPACE_SEP | STRING),
+        (kind, "kind", "kind", STRING),
+        (label, "label", "label", STRING),
+        (lang, "lang", "lang", STRING),
+        (language, "language", "language", STRING),
+        (list, "list", "list", STRING),
+        (loading, "loading", "loading", STRING),
+        (loop_, "loop", "loop", BOOL),
+        (low, "low", "low", NUMBER),
+        (manifest, "manifest", "manifest", STRING),
+        (max, "max", "max", STRING),
+        (max_length, "maxlength", "maxLength", NUMBER),
+        (media, "media", "media", STRING),
+        (method, "method", "method", STRING),
+        (min, "min", "min", STRING),
+        (min_length, "minlength", "minLength", NUMBER),
+        (multiple, "multiple", "multiple", BOOL),
+        (muted, "muted", "muted", BOOL),
+        (name, "name", "name", STRING),
+        (nonce, "nonce", "nonce", STRING),
+        (no_module, "nomodule", "noModule", BOOL),
+        (no_validate, "novalidate", "noValidate", BOOL),
+        (on_abort, "onabort", "onAbort", STRING),
+        (on_after_print, "onafterprint", "onAfterPrint", STRING),
+        (on_aux_click, "onauxclick", "onAuxClick", STRING),
+        (on_before_print, "onbeforeprint", "onBeforePrint", STRING),
+        (on_before_unload, "onbeforeunload", "onBeforeUnload", STRING),
+        (on_blur, "onblur", "onBlur", STRING),
+        (on_cancel, "oncancel", "onCancel", STRING),
+        (on_can_play, "oncanplay", "onCanPlay", STRING),
         (
             on_can_play_through,
             "oncanplaythrough",
             "onCanPlayThrough",
-            One,
-            String
+            STRING
         ),
-        (on_change, "onchange", "onChange", One, String),
-        (on_click, "onclick", "onClick", One, String),
-        (on_close, "onclose", "onClose", One, String),
-        (
-            on_context_menu,
-            "oncontextmenu",
-            "onContextMenu",
-            One,
-            String
-        ),
-        (on_copy, "oncopy", "onCopy", One, String),
-        (on_cue_change, "oncuechange", "onCueChange", One, String),
-        (on_cut, "oncut", "onCut", One, String),
-        (on_dbl_click, "ondblclick", "onDblClick", One, String),
-        (on_drag, "ondrag", "onDrag", One, String),
-        (on_drag_end, "ondragend", "onDragEnd", One, String),
-        (on_drag_enter, "ondragenter", "onDragEnter", One, String),
-        (on_drag_exit, "ondragexit", "onDragExit", One, String),
-        (on_drag_leave, "ondragleave", "onDragLeave", One, String),
-        (on_drag_over, "ondragover", "onDragOver", One, String),
-        (on_drag_start, "ondragstart", "onDragStart", One, String),
-        (on_drop, "ondrop", "onDrop", One, String),
+        (on_change, "onchange", "onChange", STRING),
+        (on_click, "onclick", "onClick", STRING),
+        (on_close, "onclose", "onClose", STRING),
+        (on_context_menu, "oncontextmenu", "onContextMenu", STRING),
+        (on_copy, "oncopy", "onCopy", STRING),
+        (on_cue_change, "oncuechange", "onCueChange", STRING),
+        (on_cut, "oncut", "onCut", STRING),
+        (on_dbl_click, "ondblclick", "onDblClick", STRING),
+        (on_drag, "ondrag", "onDrag", STRING),
+        (on_drag_end, "ondragend", "onDragEnd", STRING),
+        (on_drag_enter, "ondragenter", "onDragEnter", STRING),
+        (on_drag_exit, "ondragexit", "onDragExit", STRING),
+        (on_drag_leave, "ondragleave", "onDragLeave", STRING),
+        (on_drag_over, "ondragover", "onDragOver", STRING),
+        (on_drag_start, "ondragstart", "onDragStart", STRING),
+        (on_drop, "ondrop", "onDrop", STRING),
         (
             on_duration_change,
             "ondurationchange",
             "onDurationChange",
-            One,
-            String
+            STRING
         ),
-        (on_emptied, "onemptied", "onEmptied", One, String),
-        (on_ended, "onended", "onEnded", One, String),
-        (on_error, "onerror", "onError", One, String),
-        (on_focus, "onfocus", "onFocus", One, String),
-        (on_form_data, "onformdata", "onFormData", One, String),
-        (on_hash_change, "onhashchange", "onHashChange", One, String),
-        (on_input, "oninput", "onInput", One, String),
-        (on_invalid, "oninvalid", "onInvalid", One, String),
-        (on_key_down, "onkeydown", "onKeyDown", One, String),
-        (on_key_press, "onkeypress", "onKeyPress", One, String),
-        (on_key_up, "onkeyup", "onKeyUp", One, String),
+        (on_emptied, "onemptied", "onEmptied", STRING),
+        (on_ended, "onended", "onEnded", STRING),
+        (on_error, "onerror", "onError", STRING),
+        (on_focus, "onfocus", "onFocus", STRING),
+        (on_form_data, "onformdata", "onFormData", STRING),
+        (on_hash_change, "onhashchange", "onHashChange", STRING),
+        (on_input, "oninput", "onInput", STRING),
+        (on_invalid, "oninvalid", "onInvalid", STRING),
+        (on_key_down, "onkeydown", "onKeyDown", STRING),
+        (on_key_press, "onkeypress", "onKeyPress", STRING),
+        (on_key_up, "onkeyup", "onKeyUp", STRING),
         (
             on_language_change,
             "onlanguagechange",
             "onLanguageChange",
-            One,
-            String
+            STRING
         ),
-        (on_load, "onload", "onLoad", One, String),
-        (on_loaded_data, "onloadeddata", "onLoadedData", One, String),
+        (on_load, "onload", "onLoad", STRING),
+        (on_loaded_data, "onloadeddata", "onLoadedData", STRING),
         (
             on_loaded_metadata,
             "onloadedmetadata",
             "onLoadedMetadata",
-            One,
-            String
+            STRING
         ),
-        (on_load_end, "onloadend", "onLoadEnd", One, String),
-        (on_load_start, "onloadstart", "onLoadStart", One, String),
-        (on_message, "onmessage", "onMessage", One, String),
-        (
-            on_message_error,
-            "onmessageerror",
-            "onMessageError",
-            One,
-            String
-        ),
-        (on_mouse_down, "onmousedown", "onMouseDown", One, String),
-        (on_mouse_enter, "onmouseenter", "onMouseEnter", One, String),
-        (on_mouse_leave, "onmouseleave", "onMouseLeave", One, String),
-        (on_mouse_move, "onmousemove", "onMouseMove", One, String),
-        (on_mouse_out, "onmouseout", "onMouseOut", One, String),
-        (on_mouse_over, "onmouseover", "onMouseOver", One, String),
-        (on_mouse_up, "onmouseup", "onMouseUp", One, String),
-        (on_offline, "onoffline", "onOffline", One, String),
-        (on_online, "ononline", "onOnline", One, String),
-        (on_page_hide, "onpagehide", "onPageHide", One, String),
-        (on_page_show, "onpageshow", "onPageShow", One, String),
-        (on_paste, "onpaste", "onPaste", One, String),
-        (on_pause, "onpause", "onPause", One, String),
-        (on_play, "onplay", "onPlay", One, String),
-        (on_playing, "onplaying", "onPlaying", One, String),
-        (on_pop_state, "onpopstate", "onPopState", One, String),
-        (on_progress, "onprogress", "onProgress", One, String),
-        (on_rate_change, "onratechange", "onRateChange", One, String),
+        (on_load_end, "onloadend", "onLoadEnd", STRING),
+        (on_load_start, "onloadstart", "onLoadStart", STRING),
+        (on_message, "onmessage", "onMessage", STRING),
+        (on_message_error, "onmessageerror", "onMessageError", STRING),
+        (on_mouse_down, "onmousedown", "onMouseDown", STRING),
+        (on_mouse_enter, "onmouseenter", "onMouseEnter", STRING),
+        (on_mouse_leave, "onmouseleave", "onMouseLeave", STRING),
+        (on_mouse_move, "onmousemove", "onMouseMove", STRING),
+        (on_mouse_out, "onmouseout", "onMouseOut", STRING),
+        (on_mouse_over, "onmouseover", "onMouseOver", STRING),
+        (on_mouse_up, "onmouseup", "onMouseUp", STRING),
+        (on_offline, "onoffline", "onOffline", STRING),
+        (on_online, "ononline", "onOnline", STRING),
+        (on_page_hide, "onpagehide", "onPageHide", STRING),
+        (on_page_show, "onpageshow", "onPageShow", STRING),
+        (on_paste, "onpaste", "onPaste", STRING),
+        (on_pause, "onpause", "onPause", STRING),
+        (on_play, "onplay", "onPlay", STRING),
+        (on_playing, "onplaying", "onPlaying", STRING),
+        (on_pop_state, "onpopstate", "onPopState", STRING),
+        (on_progress, "onprogress", "onProgress", STRING),
+        (on_rate_change, "onratechange", "onRateChange", STRING),
         (
             on_rejection_handled,
             "onrejectionhandled",
             "onRejectionHandled",
-            One,
-            String
+            STRING
         ),
-        (on_reset, "onreset", "onReset", One, String),
-        (on_resize, "onresize", "onResize", One, String),
-        (on_scroll, "onscroll", "onScroll", One, String),
+        (on_reset, "onreset", "onReset", STRING),
+        (on_resize, "onresize", "onResize", STRING),
+        (on_scroll, "onscroll", "onScroll", STRING),
         (
             on_security_policy_violation,
             "onsecuritypolicyviolation",
             "onSecurityPolicyViolation",
-            One,
-            String
+            STRING
         ),
-        (on_seeked, "onseeked", "onSeeked", One, String),
-        (on_seeking, "onseeking", "onSeeking", One, String),
-        (on_select, "onselect", "onSelect", One, String),
-        (on_slot_change, "onslotchange", "onSlotChange", One, String),
-        (on_stalled, "onstalled", "onStalled", One, String),
-        (on_storage, "onstorage", "onStorage", One, String),
-        (on_submit, "onsubmit", "onSubmit", One, String),
-        (on_suspend, "onsuspend", "onSuspend", One, String),
-        (on_time_update, "ontimeupdate", "onTimeUpdate", One, String),
-        (on_toggle, "ontoggle", "onToggle", One, String),
+        (on_seeked, "onseeked", "onSeeked", STRING),
+        (on_seeking, "onseeking", "onSeeking", STRING),
+        (on_select, "onselect", "onSelect", STRING),
+        (on_slot_change, "onslotchange", "onSlotChange", STRING),
+        (on_stalled, "onstalled", "onStalled", STRING),
+        (on_storage, "onstorage", "onStorage", STRING),
+        (on_submit, "onsubmit", "onSubmit", STRING),
+        (on_suspend, "onsuspend", "onSuspend", STRING),
+        (on_time_update, "ontimeupdate", "onTimeUpdate", STRING),
+        (on_toggle, "ontoggle", "onToggle", STRING),
         (
             on_unhandled_rejection,
             "onunhandledrejection",
             "onUnhandledRejection",
-            One,
-            String
+            STRING
         ),
-        (on_unload, "onunload", "onUnload", One, String),
-        (
-            on_volume_change,
-            "onvolumechange",
-            "onVolumeChange",
-            One,
-            String
-        ),
-        (on_waiting, "onwaiting", "onWaiting", One, String),
-        (on_wheel, "onwheel", "onWheel", One, String),
-        (open, "open", "open", One, Boolean),
-        (optimum, "optimum", "optimum", One, Number),
-        (pattern, "pattern", "pattern", One, String),
-        (ping, "ping", "ping", SpaceSeparated, String),
-        (placeholder, "placeholder", "placeholder", One, String),
-        (plays_inline, "playsinline", "playsInline", One, Boolean),
-        (poster, "poster", "poster", One, String),
-        (preload, "preload", "preload", One, String),
-        (read_only, "readonly", "readOnly", One, Boolean),
-        (
-            referrer_policy,
-            "referrerpolicy",
-            "referrerPolicy",
-            One,
-            String
-        ),
-        (rel, "rel", "rel", SpaceSeparated, String),
-        (required, "required", "required", One, Boolean),
-        (reversed, "reversed", "reversed", One, Boolean),
-        (rows, "rows", "rows", One, Number),
-        (row_span, "rowspan", "rowSpan", One, Number),
-        (sandbox, "sandbox", "sandbox", SpaceSeparated, String),
-        (scope, "scope", "scope", One, String),
-        (scoped, "scoped", "scoped", One, Boolean),
-        (seamless, "seamless", "seamless", One, Boolean),
-        (selected, "selected", "selected", One, Boolean),
-        (shape, "shape", "shape", One, String),
-        (size, "size", "size", One, Number),
-        (sizes, "sizes", "sizes", One, String),
-        (slot, "slot", "slot", One, String),
-        (span, "span", "span", One, Number),
-        (spell_check, "spellcheck", "spellCheck", One, True | False),
-        (src, "src", "src", One, String),
-        (src_doc, "srcdoc", "srcDoc", One, String),
-        (src_lang, "srclang", "srcLang", One, String),
-        (src_set, "srcset", "srcSet", CommaSeparated, String),
-        (start, "start", "start", One, Number),
-        (step, "step", "step", One, String),
-        (style, "style", "style", One, String),
-        (tab_index, "tabindex", "tabIndex", One, Number),
-        (target, "target", "target", One, String),
-        (title, "title", "title", One, String),
-        (translate, "translate", "translate", One, String),
-        (type_, "type", "type", One, String),
-        (
-            type_must_match,
-            "typemustmatch",
-            "typeMustMatch",
-            One,
-            Boolean
-        ),
-        (use_map, "usemap", "useMap", One, String),
-        (value, "value", "value", One, True | False | String),
-        (width, "width", "width", One, Number),
-        (wrap, "wrap", "wrap", One, String),
+        (on_unload, "onunload", "onUnload", STRING),
+        (on_volume_change, "onvolumechange", "onVolumeChange", STRING),
+        (on_waiting, "onwaiting", "onWaiting", STRING),
+        (on_wheel, "onwheel", "onWheel", STRING),
+        (open, "open", "open", BOOL),
+        (optimum, "optimum", "optimum", NUMBER),
+        (pattern, "pattern", "pattern", STRING),
+        (ping, "ping", "ping", SPACE_SEP | STRING),
+        (placeholder, "placeholder", "placeholder", STRING),
+        (plays_inline, "playsinline", "playsInline", BOOL),
+        (poster, "poster", "poster", STRING),
+        (preload, "preload", "preload", STRING),
+        (read_only, "readonly", "readOnly", BOOL),
+        (referrer_policy, "referrerpolicy", "referrerPolicy", STRING),
+        (rel, "rel", "rel", SPACE_SEP | STRING),
+        (required, "required", "required", BOOL),
+        (reversed, "reversed", "reversed", BOOL),
+        (rows, "rows", "rows", NUMBER),
+        (row_span, "rowspan", "rowSpan", NUMBER),
+        (sandbox, "sandbox", "sandbox", SPACE_SEP | STRING),
+        (scope, "scope", "scope", STRING),
+        (scoped, "scoped", "scoped", BOOL),
+        (seamless, "seamless", "seamless", BOOL),
+        (selected, "selected", "selected", BOOL),
+        (shape, "shape", "shape", STRING),
+        (size, "size", "size", NUMBER),
+        (sizes, "sizes", "sizes", STRING),
+        (slot, "slot", "slot", STRING),
+        (span, "span", "span", NUMBER),
+        (spell_check, "spellcheck", "spellCheck", TRUE | FALSE),
+        (src, "src", "src", STRING),
+        (src_doc, "srcdoc", "srcDoc", STRING),
+        (src_lang, "srclang", "srcLang", STRING),
+        (src_set, "srcset", "srcSet", COMMA_SEP | STRING),
+        (start, "start", "start", NUMBER),
+        (step, "step", "step", STRING),
+        (style, "style", "style", STRING),
+        (tab_index, "tabindex", "tabIndex", NUMBER),
+        (target, "target", "target", STRING),
+        (title, "title", "title", STRING),
+        (translate, "translate", "translate", STRING),
+        (type_, "type", "type", STRING),
+        (type_must_match, "typemustmatch", "typeMustMatch", BOOL),
+        (use_map, "usemap", "useMap", STRING),
+        (value, "value", "value", TRUE | FALSE | STRING),
+        (width, "width", "width", NUMBER),
+        (wrap, "wrap", "wrap", STRING),
         // Legacy.
         // See: https://html.spec.whatwg.org/#other-elements,-attributes-and-apis
-        (align, "align", "align", One, String), // Several. Use CSS `text-align` instead,
-        (a_link, "alink", "aLink", One, String), // `<body>`. Use CSS `a:active {color}` instead
-        (archive, "archive", "archive", SpaceSeparated, String), // `<object>`. List of URIs to archives
-        (axis, "axis", "axis", One, String), // `<td>` and `<th>`. Use `scope` on `<th>`
-        (background, "background", "background", One, String), // `<body>`. Use CSS `background-image` instead
-        (bg_color, "bgcolor", "bgColor", One, String), // `<body>` and table elements. Use CSS `background-color` instead
-        (border, "border", "border", One, Number),     // `<table>`. Use CSS `border-width` instead,
-        (border_color, "bordercolor", "borderColor", One, String), // `<table>`. Use CSS `border-color` instead,
-        (bottom_margin, "bottommargin", "bottomMargin", One, Number), // `<body>`
-        (cell_padding, "cellpadding", "cellPadding", One, String), // `<table>`
-        (cell_spacing, "cellspacing", "cellSpacing", One, String), // `<table>`
-        (char, "char", "char", One, String), // Several table elements. When `align=char`, sets the character to align on
-        (char_off, "charoff", "charOff", One, String), // Several table elements. When `char`, offsets the alignment
-        (class_id, "classid", "classId", One, String), // `<object>`
-        (clear, "clear", "clear", One, String),        // `<br>`. Use CSS `clear` instead
-        (code, "code", "code", One, String),           // `<object>`
-        (code_base, "codebase", "codeBase", One, String), // `<object>`
-        (code_type, "codetype", "codeType", One, String), // `<object>`
-        (color, "color", "color", One, String),        // `<font>` and `<hr>`. Use CSS instead
-        (compact, "compact", "compact", One, Boolean), // Lists. Use CSS to reduce space between items instead
-        (declare, "declare", "declare", One, Boolean), // `<object>`
-        (event, "event", "event", One, String),        // `<script>`
-        (face, "face", "face", One, String),           // `<font>`. Use CSS instead
-        (frame, "frame", "frame", One, String),        // `<table>`
-        (frame_border, "frameborder", "frameBorder", One, String), // `<iframe>`. Use CSS `border` instead
-        (h_space, "hspace", "hSpace", One, Number),                // `<img>` and `<object>`
-        (left_margin, "leftmargin", "leftMargin", One, Number),    // `<body>`
-        (link, "link", "link", One, String), // `<body>`. Use CSS `a:link {color: *}` instead
-        (long_desc, "longdesc", "longDesc", One, String), // `<frame>`, `<iframe>`, and `<img>`. Use an `<a>`
-        (low_src, "lowsrc", "lowSrc", One, String),       // `<img>`. Use a `<picture>`
-        (margin_height, "marginheight", "marginHeight", One, Number), // `<body>`
-        (margin_width, "marginwidth", "marginWidth", One, Number), // `<body>`
-        (no_resize, "noresize", "noResize", One, Boolean), // `<frame>`
-        (no_href, "nohref", "noHref", One, Boolean), // `<area>`. Use no href instead of an explicit `nohref`
-        (no_shade, "noshade", "noShade", One, Boolean), // `<hr>`. Use background-color and height instead of borders
-        (no_wrap, "nowrap", "noWrap", One, Boolean),    // `<td>` and `<th>`
-        (object, "object", "object", One, String),      // `<applet>`
-        (profile, "profile", "profile", One, String),   // `<head>`
-        (prompt, "prompt", "prompt", One, String),      // `<isindex>`
-        (rev, "rev", "rev", One, String),               // `<link>`
-        (right_margin, "rightmargin", "rightMargin", One, Number), // `<body>`
-        (rules, "rules", "rules", One, String),         // `<table>`
-        (scheme, "scheme", "scheme", One, String),      // `<meta>`
-        (
-            scrolling,
-            "scrolling",
-            "scrolling",
-            One,
-            True | False | String
-        ), // `<frame>`. Use overflow in the child context
-        (standby, "standby", "standby", One, String),   // `<object>`
-        (summary, "summary", "summary", One, String),   // `<table>`
-        (text, "text", "text", One, String),            // `<body>`. Use CSS `color` instead
-        (top_margin, "topmargin", "topMargin", One, Number), // `<body>`
-        (value_type, "valuetype", "valueType", One, String), // `<param>`
-        (version, "version", "version", One, String),   // `<html>`. Use a doctype.
-        (v_align, "valign", "vAlign", One, String),     // Several. Use CSS `vertical-align` instead
-        (v_link, "vlink", "vLink", One, String), // `<body>`. Use CSS `a:visited {color}` instead
-        (v_space, "vspace", "vSpace", One, Number), // `<img>` and `<object>`
+        (align, "align", "align", STRING), // Several. Use CSS `text-align` instead,
+        (a_link, "alink", "aLink", STRING), // `<body>`. Use CSS `a:active {color}` instead
+        (archive, "archive", "archive", SPACE_SEP | STRING), // `<object>`. List of URIs to archives
+        (axis, "axis", "axis", STRING),    // `<td>` and `<th>`. Use `scope` on `<th>`
+        (background, "background", "background", STRING), // `<body>`. Use CSS `background-image` instead
+        (bg_color, "bgcolor", "bgColor", STRING), // `<body>` and table elements. Use CSS `background-color` instead
+        (border, "border", "border", NUMBER),     // `<table>`. Use CSS `border-width` instead,
+        (border_color, "bordercolor", "borderColor", STRING), // `<table>`. Use CSS `border-color` instead,
+        (bottom_margin, "bottommargin", "bottomMargin", NUMBER), // `<body>`
+        (cell_padding, "cellpadding", "cellPadding", STRING), // `<table>`
+        (cell_spacing, "cellspacing", "cellSpacing", STRING), // `<table>`
+        (char, "char", "char", STRING), // Several table elements. When `align=char`, sets the character to align on
+        (char_off, "charoff", "charOff", STRING), // Several table elements. When `char`, offsets the alignment
+        (class_id, "classid", "classId", STRING), // `<object>`
+        (clear, "clear", "clear", STRING),        // `<br>`. Use CSS `clear` instead
+        (code, "code", "code", STRING),           // `<object>`
+        (code_base, "codebase", "codeBase", STRING), // `<object>`
+        (code_type, "codetype", "codeType", STRING), // `<object>`
+        (color, "color", "color", STRING),        // `<font>` and `<hr>`. Use CSS instead
+        (compact, "compact", "compact", BOOL), // Lists. Use CSS to reduce space between items instead
+        (declare, "declare", "declare", BOOL), // `<object>`
+        (event, "event", "event", STRING),     // `<script>`
+        (face, "face", "face", STRING),        // `<font>`. Use CSS instead
+        (frame, "frame", "frame", STRING),     // `<table>`
+        (frame_border, "frameborder", "frameBorder", STRING), // `<iframe>`. Use CSS `border` instead
+        (h_space, "hspace", "hSpace", NUMBER),                // `<img>` and `<object>`
+        (left_margin, "leftmargin", "leftMargin", NUMBER),    // `<body>`
+        (link, "link", "link", STRING), // `<body>`. Use CSS `a:link {color: *}` instead
+        (long_desc, "longdesc", "longDesc", STRING), // `<frame>`, `<iframe>`, and `<img>`. Use an `<a>`
+        (low_src, "lowsrc", "lowSrc", STRING),       // `<img>`. Use a `<picture>`
+        (margin_height, "marginheight", "marginHeight", NUMBER), // `<body>`
+        (margin_width, "marginwidth", "marginWidth", NUMBER), // `<body>`
+        (no_resize, "noresize", "noResize", BOOL),   // `<frame>`
+        (no_href, "nohref", "noHref", BOOL), // `<area>`. Use no href instead of an explicit `nohref`
+        (no_shade, "noshade", "noShade", BOOL), // `<hr>`. Use background-color and height instead of borders
+        (no_wrap, "nowrap", "noWrap", BOOL),    // `<td>` and `<th>`
+        (object, "object", "object", STRING),   // `<applet>`
+        (profile, "profile", "profile", STRING), // `<head>`
+        (prompt, "prompt", "prompt", STRING),   // `<isindex>`
+        (rev, "rev", "rev", STRING),            // `<link>`
+        (right_margin, "rightmargin", "rightMargin", NUMBER), // `<body>`
+        (rules, "rules", "rules", STRING),      // `<table>`
+        (scheme, "scheme", "scheme", STRING),   // `<meta>`
+        (scrolling, "scrolling", "scrolling", TRUE | FALSE | STRING), // `<frame>`. Use overflow in the child context
+        (standby, "standby", "standby", STRING),                      // `<object>`
+        (summary, "summary", "summary", STRING),                      // `<table>`
+        (text, "text", "text", STRING), // `<body>`. Use CSS `color` instead
+        (top_margin, "topmargin", "topMargin", NUMBER), // `<body>`
+        (value_type, "valuetype", "valueType", STRING), // `<param>`
+        (version, "version", "version", STRING), // `<html>`. Use a doctype.
+        (v_align, "valign", "vAlign", STRING), // Several. Use CSS `vertical-align` instead
+        (v_link, "vlink", "vLink", STRING), // `<body>`. Use CSS `a:visited {color}` instead
+        (v_space, "vspace", "vSpace", NUMBER), // `<img>` and `<object>`
         // Non-standard Properties.
         (
             allow_transparency,
             "allowtransparency",
             "allowTransparency",
-            One,
-            String
+            STRING
         ),
-        (auto_correct, "autocorrect", "autoCorrect", One, String),
-        (auto_save, "autosave", "autoSave", One, String),
+        (auto_correct, "autocorrect", "autoCorrect", STRING),
+        (auto_save, "autosave", "autoSave", STRING),
         (
             disable_picture_in_picture,
             "disablepictureinpicture",
             "disablePictureInPicture",
-            One,
-            Boolean
+            BOOL
         ),
         (
             disable_remote_playback,
             "disableremoteplayback",
             "disableRemotePlayback",
-            One,
-            Boolean
+            BOOL
         ),
-        (prefix, "prefix", "prefix", One, String),
-        (property, "property", "property", One, String),
-        (results, "results", "results", One, Number),
-        (security, "security", "security", One, String),
-        (unselectable, "unselectable", "unselectable", One, String)
+        (prefix, "prefix", "prefix", STRING),
+        (property, "property", "property", STRING),
+        (results, "results", "results", NUMBER),
+        (security, "security", "security", STRING),
+        (unselectable, "unselectable", "unselectable", STRING)
     );
 }
 

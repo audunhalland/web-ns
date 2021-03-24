@@ -3,18 +3,54 @@ pub mod attrs {
     crate::define_attrs!(
         (abbr, "abbr", "abbr", One, String),
         (accept, "accept", "accept", CommaSeparated, String),
-        (accept_charset, "accept-charset", "acceptCharset", SpaceSeparated, String),
+        (
+            accept_charset,
+            "accept-charset",
+            "acceptCharset",
+            SpaceSeparated,
+            String
+        ),
         (access_key, "accesskey", "accessKey", SpaceSeparated, String),
         (action, "action", "action", One, String),
         (allow, "allow", "allow", One, String),
-        (allow_full_screen, "allowfullscreen", "allowFullScreen", One, Boolean),
-        (allow_payment_request, "allowpaymentrequest", "allowPaymentRequest", One, Boolean),
-        (allow_user_media, "allowusermedia", "allowUserMedia", One, Boolean),
+        (
+            allow_full_screen,
+            "allowfullscreen",
+            "allowFullScreen",
+            One,
+            Boolean
+        ),
+        (
+            allow_payment_request,
+            "allowpaymentrequest",
+            "allowPaymentRequest",
+            One,
+            Boolean
+        ),
+        (
+            allow_user_media,
+            "allowusermedia",
+            "allowUserMedia",
+            One,
+            Boolean
+        ),
         (alt, "alt", "alt", One, String),
         (as_, "as", "as", One, String),
         (async_, "async", "async", One, Boolean),
-        (auto_capitalize, "autocapitalize", "autoCapitalize", One, String),
-        (auto_complete, "autocomplete", "autoComplete", SpaceSeparated, String),
+        (
+            auto_capitalize,
+            "autocapitalize",
+            "autoCapitalize",
+            One,
+            String
+        ),
+        (
+            auto_complete,
+            "autocomplete",
+            "autoComplete",
+            SpaceSeparated,
+            String
+        ),
         (auto_focus, "autofocus", "autoFocus", One, Boolean),
         (auto_play, "autoplay", "autoPlay", One, Boolean),
         (capture, "capture", "capture", One, Boolean),
@@ -25,9 +61,21 @@ pub mod attrs {
         (cols, "cols", "cols", One, Number),
         (colspan, "colspan", "colSpan", One, String),
         (content, "content", "content", One, String),
-        (contente_ditable, "contenteditable", "contentEditable", One, True | EmptyString | False),
+        (
+            contente_ditable,
+            "contenteditable",
+            "contentEditable",
+            One,
+            True | EmptyString | False
+        ),
         (controls, "controls", "controls", One, Boolean),
-        (controls_list, "controlslist", "controlsList", SpaceSeparated, String),
+        (
+            controls_list,
+            "controlslist",
+            "controlsList",
+            SpaceSeparated,
+            String
+        ),
         (coords, "coords", "coords", CommaSeparated, String),
         (cross_origin, "crossorigin", "crossOrigin", One, String),
         (data, "data", "data", One, String),
@@ -46,7 +94,13 @@ pub mod attrs {
         (form_action, "formaction", "formAction", One, String),
         (form_enc_type, "formenctype", "formEncType", One, String),
         (form_method, "formmethod", "formMethod", One, String),
-        (form_no_validate, "formnovalidate", "formNoValidate", One, Boolean),
+        (
+            form_no_validate,
+            "formnovalidate",
+            "formNoValidate",
+            One,
+            Boolean
+        ),
         (form_target, "formtarget", "formTarget", One, String),
         (headers, "headers", "headers", SpaceSeparated, String),
         (height, "height", "height", One, Number),
@@ -55,10 +109,22 @@ pub mod attrs {
         (href, "href", "href", One, String),
         (href_lang, "hreflang", "hrefLang", One, String),
         (html_for, "for", "htmlFor", SpaceSeparated, String),
-        (http_equiv, "http-equiv", "httpEquiv", SpaceSeparated, String),
+        (
+            http_equiv,
+            "http-equiv",
+            "httpEquiv",
+            SpaceSeparated,
+            String
+        ),
         (id, "id", "id", One, String),
         (image_sizes, "imagesizes", "imageSizes", One, String),
-        (image_src_set, "imagesrcset", "imageSrcSet", CommaSeparated, String),
+        (
+            image_src_set,
+            "imagesrcset",
+            "imageSrcSet",
+            CommaSeparated,
+            String
+        ),
         (input_mode, "inputmode", "inputMode", One, String),
         (integrity, "integrity", "integrity", One, String),
         (is, "is", "is", One, String),
@@ -92,16 +158,40 @@ pub mod attrs {
         (on_abort, "onabort", "onAbort", One, String),
         (on_after_print, "onafterprint", "onAfterPrint", One, String),
         (on_aux_click, "onauxclick", "onAuxClick", One, String),
-        (on_before_print, "onbeforeprint", "onBeforePrint", One, String),
-        (on_before_unload, "onbeforeunload", "onBeforeUnload", One, String),
+        (
+            on_before_print,
+            "onbeforeprint",
+            "onBeforePrint",
+            One,
+            String
+        ),
+        (
+            on_before_unload,
+            "onbeforeunload",
+            "onBeforeUnload",
+            One,
+            String
+        ),
         (on_blur, "onblur", "onBlur", One, String),
         (on_cancel, "oncancel", "onCancel", One, String),
         (on_can_play, "oncanplay", "onCanPlay", One, String),
-        (on_can_play_through, "oncanplaythrough", "onCanPlayThrough", One, String),
+        (
+            on_can_play_through,
+            "oncanplaythrough",
+            "onCanPlayThrough",
+            One,
+            String
+        ),
         (on_change, "onchange", "onChange", One, String),
         (on_click, "onclick", "onClick", One, String),
         (on_close, "onclose", "onClose", One, String),
-        (on_context_menu, "oncontextmenu", "onContextMenu", One, String),
+        (
+            on_context_menu,
+            "oncontextmenu",
+            "onContextMenu",
+            One,
+            String
+        ),
         (on_copy, "oncopy", "onCopy", One, String),
         (on_cue_change, "oncuechange", "onCueChange", One, String),
         (on_cut, "oncut", "onCut", One, String),
@@ -114,7 +204,13 @@ pub mod attrs {
         (on_drag_over, "ondragover", "onDragOver", One, String),
         (on_drag_start, "ondragstart", "onDragStart", One, String),
         (on_drop, "ondrop", "onDrop", One, String),
-        (on_duration_change, "ondurationchange", "onDurationChange", One, String),
+        (
+            on_duration_change,
+            "ondurationchange",
+            "onDurationChange",
+            One,
+            String
+        ),
         (on_emptied, "onemptied", "onEmptied", One, String),
         (on_ended, "onended", "onEnded", One, String),
         (on_error, "onerror", "onError", One, String),
@@ -126,14 +222,32 @@ pub mod attrs {
         (on_key_down, "onkeydown", "onKeyDown", One, String),
         (on_key_press, "onkeypress", "onKeyPress", One, String),
         (on_key_up, "onkeyup", "onKeyUp", One, String),
-        (on_language_change, "onlanguagechange", "onLanguageChange", One, String),
+        (
+            on_language_change,
+            "onlanguagechange",
+            "onLanguageChange",
+            One,
+            String
+        ),
         (on_load, "onload", "onLoad", One, String),
         (on_loaded_data, "onloadeddata", "onLoadedData", One, String),
-        (on_loaded_metadata, "onloadedmetadata", "onLoadedMetadata", One, String),
+        (
+            on_loaded_metadata,
+            "onloadedmetadata",
+            "onLoadedMetadata",
+            One,
+            String
+        ),
         (on_load_end, "onloadend", "onLoadEnd", One, String),
         (on_load_start, "onloadstart", "onLoadStart", One, String),
         (on_message, "onmessage", "onMessage", One, String),
-        (on_message_error, "onmessageerror", "onMessageError", One, String),
+        (
+            on_message_error,
+            "onmessageerror",
+            "onMessageError",
+            One,
+            String
+        ),
         (on_mouse_down, "onmousedown", "onMouseDown", One, String),
         (on_mouse_enter, "onmouseenter", "onMouseEnter", One, String),
         (on_mouse_leave, "onmouseleave", "onMouseLeave", One, String),
@@ -152,11 +266,23 @@ pub mod attrs {
         (on_pop_state, "onpopstate", "onPopState", One, String),
         (on_progress, "onprogress", "onProgress", One, String),
         (on_rate_change, "onratechange", "onRateChange", One, String),
-        (on_rejection_handled, "onrejectionhandled", "onRejectionHandled", One, String),
+        (
+            on_rejection_handled,
+            "onrejectionhandled",
+            "onRejectionHandled",
+            One,
+            String
+        ),
         (on_reset, "onreset", "onReset", One, String),
         (on_resize, "onresize", "onResize", One, String),
         (on_scroll, "onscroll", "onScroll", One, String),
-        (on_security_policy_violation, "onsecuritypolicyviolation", "onSecurityPolicyViolation", One, String),
+        (
+            on_security_policy_violation,
+            "onsecuritypolicyviolation",
+            "onSecurityPolicyViolation",
+            One,
+            String
+        ),
         (on_seeked, "onseeked", "onSeeked", One, String),
         (on_seeking, "onseeking", "onSeeking", One, String),
         (on_select, "onselect", "onSelect", One, String),
@@ -167,9 +293,21 @@ pub mod attrs {
         (on_suspend, "onsuspend", "onSuspend", One, String),
         (on_time_update, "ontimeupdate", "onTimeUpdate", One, String),
         (on_toggle, "ontoggle", "onToggle", One, String),
-        (on_unhandled_rejection, "onunhandledrejection", "onUnhandledRejection", One, String),
+        (
+            on_unhandled_rejection,
+            "onunhandledrejection",
+            "onUnhandledRejection",
+            One,
+            String
+        ),
         (on_unload, "onunload", "onUnload", One, String),
-        (on_volume_change, "onvolumechange", "onVolumeChange", One, String),
+        (
+            on_volume_change,
+            "onvolumechange",
+            "onVolumeChange",
+            One,
+            String
+        ),
         (on_waiting, "onwaiting", "onWaiting", One, String),
         (on_wheel, "onwheel", "onWheel", One, String),
         (open, "open", "open", One, Boolean),
@@ -181,7 +319,13 @@ pub mod attrs {
         (poster, "poster", "poster", One, String),
         (preload, "preload", "preload", One, String),
         (read_only, "readonly", "readOnly", One, Boolean),
-        (referrer_policy, "referrerpolicy", "referrerPolicy", One, String),
+        (
+            referrer_policy,
+            "referrerpolicy",
+            "referrerPolicy",
+            One,
+            String
+        ),
         (rel, "rel", "rel", SpaceSeparated, String),
         (required, "required", "required", One, Boolean),
         (reversed, "reversed", "reversed", One, Boolean),
@@ -210,12 +354,17 @@ pub mod attrs {
         (title, "title", "title", One, String),
         (translate, "translate", "translate", One, String),
         (type_, "type", "type", One, String),
-        (type_must_match, "typemustmatch", "typeMustMatch", One, Boolean),
+        (
+            type_must_match,
+            "typemustmatch",
+            "typeMustMatch",
+            One,
+            Boolean
+        ),
         (use_map, "usemap", "useMap", One, String),
         (value, "value", "value", One, True | False | String),
         (width, "width", "width", One, Number),
         (wrap, "wrap", "wrap", One, String),
-
         // Legacy.
         // See: https://html.spec.whatwg.org/#other-elements,-attributes-and-apis
         (align, "align", "align", One, String), // Several. Use CSS `text-align` instead,
@@ -224,7 +373,7 @@ pub mod attrs {
         (axis, "axis", "axis", One, String), // `<td>` and `<th>`. Use `scope` on `<th>`
         (background, "background", "background", One, String), // `<body>`. Use CSS `background-image` instead
         (bg_color, "bgcolor", "bgColor", One, String), // `<body>` and table elements. Use CSS `background-color` instead
-        (border, "border", "border", One, Number), // `<table>`. Use CSS `border-width` instead,
+        (border, "border", "border", One, Number),     // `<table>`. Use CSS `border-width` instead,
         (border_color, "bordercolor", "borderColor", One, String), // `<table>`. Use CSS `border-color` instead,
         (bottom_margin, "bottommargin", "bottomMargin", One, Number), // `<body>`
         (cell_padding, "cellpadding", "cellPadding", One, String), // `<table>`
@@ -232,52 +381,75 @@ pub mod attrs {
         (char, "char", "char", One, String), // Several table elements. When `align=char`, sets the character to align on
         (char_off, "charoff", "charOff", One, String), // Several table elements. When `char`, offsets the alignment
         (class_id, "classid", "classId", One, String), // `<object>`
-        (clear, "clear", "clear", One, String), // `<br>`. Use CSS `clear` instead
-        (code, "code", "code", One, String), // `<object>`
+        (clear, "clear", "clear", One, String),        // `<br>`. Use CSS `clear` instead
+        (code, "code", "code", One, String),           // `<object>`
         (code_base, "codebase", "codeBase", One, String), // `<object>`
         (code_type, "codetype", "codeType", One, String), // `<object>`
-        (color, "color", "color", One, String), // `<font>` and `<hr>`. Use CSS instead
+        (color, "color", "color", One, String),        // `<font>` and `<hr>`. Use CSS instead
         (compact, "compact", "compact", One, Boolean), // Lists. Use CSS to reduce space between items instead
         (declare, "declare", "declare", One, Boolean), // `<object>`
-        (event, "event", "event", One, String), // `<script>`
-        (face, "face", "face", One, String), // `<font>`. Use CSS instead
-        (frame, "frame", "frame", One, String), // `<table>`
+        (event, "event", "event", One, String),        // `<script>`
+        (face, "face", "face", One, String),           // `<font>`. Use CSS instead
+        (frame, "frame", "frame", One, String),        // `<table>`
         (frame_border, "frameborder", "frameBorder", One, String), // `<iframe>`. Use CSS `border` instead
-        (h_space, "hspace", "hSpace", One, Number), // `<img>` and `<object>`
-        (left_margin, "leftmargin", "leftMargin", One, Number), // `<body>`
+        (h_space, "hspace", "hSpace", One, Number),                // `<img>` and `<object>`
+        (left_margin, "leftmargin", "leftMargin", One, Number),    // `<body>`
         (link, "link", "link", One, String), // `<body>`. Use CSS `a:link {color: *}` instead
         (long_desc, "longdesc", "longDesc", One, String), // `<frame>`, `<iframe>`, and `<img>`. Use an `<a>`
-        (low_src, "lowsrc", "lowSrc", One, String), // `<img>`. Use a `<picture>`
+        (low_src, "lowsrc", "lowSrc", One, String),       // `<img>`. Use a `<picture>`
         (margin_height, "marginheight", "marginHeight", One, Number), // `<body>`
         (margin_width, "marginwidth", "marginWidth", One, Number), // `<body>`
         (no_resize, "noresize", "noResize", One, Boolean), // `<frame>`
         (no_href, "nohref", "noHref", One, Boolean), // `<area>`. Use no href instead of an explicit `nohref`
         (no_shade, "noshade", "noShade", One, Boolean), // `<hr>`. Use background-color and height instead of borders
-        (no_wrap, "nowrap", "noWrap", One, Boolean), // `<td>` and `<th>`
-        (object, "object", "object", One, String), // `<applet>`
-        (profile, "profile", "profile", One, String), // `<head>`
-        (prompt, "prompt", "prompt", One, String), // `<isindex>`
-        (rev, "rev", "rev", One, String), // `<link>`
+        (no_wrap, "nowrap", "noWrap", One, Boolean),    // `<td>` and `<th>`
+        (object, "object", "object", One, String),      // `<applet>`
+        (profile, "profile", "profile", One, String),   // `<head>`
+        (prompt, "prompt", "prompt", One, String),      // `<isindex>`
+        (rev, "rev", "rev", One, String),               // `<link>`
         (right_margin, "rightmargin", "rightMargin", One, Number), // `<body>`
-        (rules, "rules", "rules", One, String), // `<table>`
-        (scheme, "scheme", "scheme", One, String), // `<meta>`
-        (scrolling, "scrolling", "scrolling", One, True | False | String), // `<frame>`. Use overflow in the child context
-        (standby, "standby", "standby", One, String), // `<object>`
-        (summary, "summary", "summary", One, String), // `<table>`
-        (text, "text", "text", One, String), // `<body>`. Use CSS `color` instead
+        (rules, "rules", "rules", One, String),         // `<table>`
+        (scheme, "scheme", "scheme", One, String),      // `<meta>`
+        (
+            scrolling,
+            "scrolling",
+            "scrolling",
+            One,
+            True | False | String
+        ), // `<frame>`. Use overflow in the child context
+        (standby, "standby", "standby", One, String),   // `<object>`
+        (summary, "summary", "summary", One, String),   // `<table>`
+        (text, "text", "text", One, String),            // `<body>`. Use CSS `color` instead
         (top_margin, "topmargin", "topMargin", One, Number), // `<body>`
         (value_type, "valuetype", "valueType", One, String), // `<param>`
-        (version, "version", "version", One, String), // `<html>`. Use a doctype.
-        (v_align, "valign", "vAlign", One, String), // Several. Use CSS `vertical-align` instead
+        (version, "version", "version", One, String),   // `<html>`. Use a doctype.
+        (v_align, "valign", "vAlign", One, String),     // Several. Use CSS `vertical-align` instead
         (v_link, "vlink", "vLink", One, String), // `<body>`. Use CSS `a:visited {color}` instead
         (v_space, "vspace", "vSpace", One, Number), // `<img>` and `<object>`
-
         // Non-standard Properties.
-        (allow_transparency, "allowtransparency", "allowTransparency", One, String),
+        (
+            allow_transparency,
+            "allowtransparency",
+            "allowTransparency",
+            One,
+            String
+        ),
         (auto_correct, "autocorrect", "autoCorrect", One, String),
         (auto_save, "autosave", "autoSave", One, String),
-        (disable_picture_in_picture, "disablepictureinpicture", "disablePictureInPicture", One, Boolean),
-        (disable_remote_playback, "disableremoteplayback", "disableRemotePlayback", One, Boolean),
+        (
+            disable_picture_in_picture,
+            "disablepictureinpicture",
+            "disablePictureInPicture",
+            One,
+            Boolean
+        ),
+        (
+            disable_remote_playback,
+            "disableremoteplayback",
+            "disableRemotePlayback",
+            One,
+            Boolean
+        ),
         (prefix, "prefix", "prefix", One, String),
         (property, "property", "property", One, String),
         (results, "results", "results", One, Number),

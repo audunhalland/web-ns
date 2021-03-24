@@ -1,7 +1,7 @@
 
 pub mod attribute;
 
-mod attribute_fmt;
+mod attr_type;
 mod macros;
 mod internal;
 

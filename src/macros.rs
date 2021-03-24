@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! define_attrs {
-    ($( ($name:ident, $attr:literal, $prop:literal, $format:tt) ),* ) => {
+    ($( ($name:ident, $attr:literal, $prop:literal, $q:tt, $format:tt) ),* ) => {
         $(
             mod $name {
                 pub const ATTRIBUTE: &str = $attr;
@@ -9,7 +9,11 @@ macro_rules! define_attrs {
                 pub const INTERNAL_ATTR: crate::internal::InternalAttr = crate::internal::InternalAttr {
                     attribute: ATTRIBUTE,
                     property: PROPERTY,
-                    format: crate::attribute_fmt::AttrFormat::$format,
+                    format: crate::attr_type::AttrFormat::$format,
+                    attr_type: crate::attr_type::AttrType {
+                        primitives: &[],
+                        quantifier: crate::attr_type::Quantifier::$q,
+                    },
                 };
             }
         )*

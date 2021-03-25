@@ -9,7 +9,7 @@ pub mod attrs {
     pub fn internal_attr_by_property(
         property: &str,
     ) -> Option<&'static crate::attr::attr_impl::InternalAttr> {
-        let index = phf_str_lookup(&PROPERTY_PHF, property)?;
-        Some(&INTERNAL_ATTRS[index])
+        let index = PROPERTY_PHF.get(property)?;
+        Some(&INTERNAL_ATTRS[*index])
     }
 }

@@ -2,7 +2,7 @@
 
 pub mod attr;
 
-mod unicase_slice;
+mod static_unicase;
 
 mod schema {
     pub mod html;

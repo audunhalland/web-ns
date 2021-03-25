@@ -17,6 +17,12 @@ impl StaticUniCase {
     }
 }
 
+impl AsRef<str> for StaticUniCase {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
+    }
+}
+
 impl<'a> PartialEq<StaticUniCase> for StaticUniCase {
     fn eq(&self, rhs: &StaticUniCase) -> bool {
         self.0.eq(&rhs.0)
@@ -57,6 +63,12 @@ impl<'a> FmtConst for StaticUniCase {
 /// a 'static &str reference, but we don't have that when we want to look up in the map.
 ///
 impl<'a> std::borrow::Borrow<UniCase<&'a str>> for StaticUniCase {
+    fn borrow(&self) -> &UniCase<&'a str> {
+        &self.0
+    }
+}
+
+impl<'a> std::borrow::Borrow<UniCase<&'a str>> for &StaticUniCase {
     fn borrow(&self) -> &UniCase<&'a str> {
         &self.0
     }

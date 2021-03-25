@@ -1,8 +1,8 @@
-extern crate phf;
+#![forbid(unsafe_code)]
 
 pub mod attr;
 
-mod phf_util;
+mod unicase_slice;
 
 mod schema {
     pub mod html;

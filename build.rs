@@ -7,6 +7,11 @@ use std::path::Path;
 
 use unicase::UniCase;
 
+#[path = "src/unicase_slice.rs"]
+mod unicase_slice;
+
+use unicase_slice::StaticAsciiUniCaseSlice;
+
 #[path = "src/attr/attr_type.rs"]
 mod attr_type;
 
@@ -34,10 +39,9 @@ fn codegen_attrs(
 ) -> std::io::Result<()> {
     let mut file = BufWriter::new(File::create(&out_path)?);
 
-    writeln!(&mut file, "use unicase::UniCase;")?;
     writeln!(&mut file, "use crate::attr::attr_impl::*;")?;
     writeln!(&mut file, "use crate::attr::attr_type::*;")?;
-    writeln!(&mut file, "use crate::phf_util::*;")?;
+    writeln!(&mut file, "use crate::unicase_slice::*;")?;
     writeln!(&mut file)?;
 
     {
@@ -55,14 +59,14 @@ fn codegen_attrs(
     }
 
     {
-        let mut map_codegen: phf_codegen::Map<UniCase<&'static str>> = phf_codegen::Map::new();
+        let mut map_codegen: phf_codegen::Map<StaticAsciiUniCaseSlice> = phf_codegen::Map::new();
         for (i, (attr, _, _)) in defs.iter().enumerate() {
-            map_codegen.entry(UniCase::new(attr), &format!("{}", i));
+            map_codegen.entry(StaticAsciiUniCaseSlice::new(attr), &format!("{}", i));
         }
 
         writeln!(
             &mut file,
-            "static ATTRIBUTE_UNICASE_PHF: phf::Map<UniCase<&'static str>, usize> = \n{};\n",
+            "static ATTRIBUTE_UNICASE_PHF: phf::Map<StaticAsciiUniCaseSlice, usize> = \n{};\n",
             map_codegen.build()
         )?;
     }

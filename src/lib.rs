@@ -1,6 +1,10 @@
+extern crate phf;
+
 pub mod attr;
 
 mod macros;
+mod phf_util;
+mod unicase_util;
 
 mod schema {
     pub mod html;

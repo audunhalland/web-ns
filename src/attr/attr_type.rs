@@ -1,4 +1,4 @@
-type Flags = u32;
+pub type Flags = u32;
 
 ///
 /// The runtime type of an attribute.

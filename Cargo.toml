@@ -8,3 +8,10 @@ edition = "2018"
 
 [dependencies]
 unicase = "2"
+phf = { version = "0.8", features = ["unicase"] }
+phf_shared = { version = "0.8", features = ["unicase"] }
+
+[build-dependencies]
+unicase = "2"
+phf_codegen = { version = "0.8" }
+phf_shared = { version = "0.8", features = ["unicase"] }

@@ -145,6 +145,7 @@ mod tests {
     #[test]
     fn parse_html5_attributes() {
         test_html_attribute("accept-charset", Some(("accept-charset", "acceptCharset")));
+        test_html_attribute("ACCEPT-CHARSET", Some(("accept-charset", "acceptCharset")));
         test_html_attribute("class", Some(("class", "className")));
         test_html_attribute("foobar", None);
         test_html_attribute("data", Some(("data", "data")));
@@ -155,5 +156,12 @@ mod tests {
         test_html_attribute("data-f", Some(("data-f", "dataF")));
         test_html_attribute("data-foobar", Some(("data-foobar", "dataFoobar")));
         test_html_attribute("data-fooBar-1", Some(("data-fooBar-1", "dataFooBar-1")));
+    }
+
+    #[test]
+    fn lookup_html_property() {
+        assert!(parse_property("className", Schema::Html5).is_some());
+        assert!(parse_property("ClassName", Schema::Html5).is_none());
+        assert!(parse_property("foobar", Schema::Html5).is_none());
     }
 }

@@ -35,12 +35,15 @@ impl Attribute {
         }
     }
 
-    // FIXME: proper error type
-    pub fn encode_value<S>(&self, value: Option<S>) -> Result<AttributeValue, crate::Error>
+    ///
+    /// Parse a string-based _value_ of this attribute.
+    /// The Option is there to represent an attribute with no value.
+    ///
+    pub fn parse_value<S>(&self, value: Option<S>) -> Result<AttributeValue, crate::Error>
     where
         S: Into<String> + AsRef<str>,
     {
-        value::encode(value, self.attr_type())
+        value::parse(value, self.attr_type())
     }
 
     fn attr_type(&self) -> AttrType {
@@ -79,6 +82,7 @@ impl Ord for Attribute {
 
 ///
 /// A typed attribute value.
+/// This is the output of the Attribute::parse method.
 ///
 #[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum AttributeValue {

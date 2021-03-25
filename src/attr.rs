@@ -1,3 +1,10 @@
+//! Typed web attributes.
+//!
+//! The `Attribute` type implements `Hash` and `Ord`, so this can be
+//! conveniently used as map keys.
+//!
+//! Known, internal attributes allocate no memory upon being parsed.
+//!
 pub mod attr_impl;
 pub mod attr_type;
 mod value;
@@ -9,14 +16,24 @@ use attr_impl::*;
 use attr_type::*;
 
 ///
-/// A web attribute.
+/// A typed attribute used in web documents.
 ///
 #[derive(Clone)]
 pub struct Attribute(attr_impl::AttrImpl);
 
 impl Attribute {
     ///
-    /// Access the markup attribute name of this attribute.
+    /// Access the canonical markup attribute name of this attribute.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use web_schema::Schema;
+    /// use web_schema::attr::parse_attribute;
+    ///
+    /// let attr = parse_attribute("ClAsS", Schema::Html5).unwrap();
+    /// assert_eq!(attr.attribute(), "class");
+    /// ```
     ///
     pub fn attribute(&self) -> &str {
         match &self.0 {
@@ -28,6 +45,16 @@ impl Attribute {
     ///
     /// Access the JS property name of this attribute.
     ///
+    /// # Usage
+    ///
+    /// ```
+    /// use web_schema::Schema;
+    /// use web_schema::attr::parse_attribute;
+    ///
+    /// let attr = parse_attribute("ClAsS", Schema::Html5).unwrap();
+    /// assert_eq!(attr.property(), "className");
+    /// ```
+    ///
     pub fn property(&self) -> &str {
         match &self.0 {
             AttrImpl::Internal(attr) => attr.property,
@@ -38,6 +65,17 @@ impl Attribute {
     ///
     /// Parse a string-based _value_ of this attribute.
     /// The Option is there to represent an attribute with no value.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use web_schema::Schema;
+    /// use web_schema::attr::*;
+    ///
+    /// let attr = parse_attribute("class", Schema::Html5).unwrap();
+    /// let value = attr.parse_value(Some("foo bar")).unwrap();
+    /// assert_eq!(value, AttributeValue::Multi(vec!["foo".to_string(), "bar".to_string()]));
+    /// ```
     ///
     pub fn parse_value<S>(&self, value: Option<S>) -> Result<AttributeValue, crate::Error>
     where
@@ -82,6 +120,7 @@ impl Ord for Attribute {
 
 ///
 /// A typed attribute value.
+///
 /// This is the output of the Attribute::parse method.
 ///
 #[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
@@ -93,8 +132,17 @@ pub enum AttributeValue {
 }
 
 ///
-/// Tries to parse an attribute name. Official web attributes
-/// should not allocate any memory.
+/// Parse an attribute name. Known web attributes do not allocate any memory.
+/// For known attributes, the matching is case-insensitive.
+///
+/// ```
+/// use web_schema::Schema;
+/// use web_schema::attr::parse_attribute;
+///
+/// let attr = parse_attribute("data-foobar", Schema::Html5).unwrap();
+/// assert_eq!(attr.attribute(), "data-foobar");
+/// assert_eq!(attr.property(), "dataFoobar");
+/// ```
 ///
 pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
     match schema {
@@ -123,6 +171,19 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
     }
 }
 
+///
+/// Parse a DOM property name.
+///
+/// # Usage
+///
+/// ```
+/// use web_schema::Schema;
+/// use web_schema::attr::parse_property;
+///
+/// let attr = parse_property("className", Schema::Html5).unwrap();
+/// assert_eq!(attr.attribute(), "class");
+/// ```
+///
 pub fn parse_property(property: &str, schema: Schema) -> Option<Attribute> {
     match schema {
         Schema::Html5 => match schema::html::attrs::internal_attr_by_property(property) {

@@ -9,6 +9,9 @@ mod schema {
     pub mod html;
 }
 
+///
+/// A specific document Schema used on the web.
+///
 pub enum Schema {
     Html5,
 }

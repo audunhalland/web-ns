@@ -3,7 +3,6 @@ extern crate phf;
 pub mod attr;
 
 mod phf_util;
-mod unicase_util;
 
 mod schema {
     pub mod html;

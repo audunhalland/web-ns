@@ -84,6 +84,14 @@ impl Attribute {
         value::parse_attribute(value, self.attr_type())
     }
 
+    ///
+    /// Serialize an attribute value, following the rules on how
+    /// that value should be serialized given the schema that the attribute originates from.
+    ///
+    pub fn serialize_attribute_value(&self, value: &AttributeValue) -> SerializedAttributeValue {
+        value::serialize_attribute_value(value, self.attr_type())
+    }
+
     fn attr_type(&self) -> AttrType {
         match &self.0 {
             AttrImpl::Internal(attr) => attr.attr_type,
@@ -129,6 +137,21 @@ pub enum AttributeValue {
     False,
     String(String),
     Multi(Vec<String>),
+}
+
+///
+/// A serialized attribute value, for building DOM documents.
+///
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum SerializedAttributeValue {
+    /// The entire attribute can be be omitted from markup.
+    Omitted,
+    /// The attribute should be empty/valueless.
+    /// `<foo attribute />`
+    Empty,
+    /// The attribute has a string value.
+    /// `<foo attribute="bar" />`
+    String(String),
 }
 
 ///

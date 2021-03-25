@@ -14,36 +14,44 @@ mod attr_type;
 mod html_defs;
 
 fn main() {
-    let out_dir = env::var("OUT_DIR").unwrap();
-
-    gen_attrs(
-        html_defs::attrs::DEFS,
-        Path::new(&out_dir).join("codegen_html_attrs.rs"),
-    );
+    codegen().unwrap();
 }
 
-fn gen_attrs(defs: &[(&'static str, &'static str, u32)], out_path: std::path::PathBuf) {
-    let mut file = BufWriter::new(File::create(&out_path).unwrap());
+fn codegen() -> std::io::Result<()> {
+    let out_dir = env::var("OUT_DIR").unwrap();
 
-    writeln!(&mut file, "use unicase::UniCase;").unwrap();
-    writeln!(&mut file, "use crate::attr::attr_impl::*;").unwrap();
-    writeln!(&mut file, "use crate::attr::attr_type::*;").unwrap();
-    writeln!(&mut file, "use crate::phf_util::*;").unwrap();
-    writeln!(&mut file).unwrap();
+    codegen_attrs(
+        html_defs::attrs::DEFS,
+        Path::new(&out_dir).join("codegen_html_attrs.rs"),
+    )?;
+
+    Ok(())
+}
+
+fn codegen_attrs(
+    defs: &[(&'static str, &'static str, u32)],
+    out_path: std::path::PathBuf,
+) -> std::io::Result<()> {
+    let mut file = BufWriter::new(File::create(&out_path)?);
+
+    writeln!(&mut file, "use unicase::UniCase;")?;
+    writeln!(&mut file, "use crate::attr::attr_impl::*;")?;
+    writeln!(&mut file, "use crate::attr::attr_type::*;")?;
+    writeln!(&mut file, "use crate::phf_util::*;")?;
+    writeln!(&mut file)?;
 
     {
-        writeln!(&mut file, "static attrs: &[InternalAttr] = &[").unwrap();
+        writeln!(&mut file, "static attrs: &[InternalAttr] = &[")?;
 
         for (attr, prop, flags) in defs {
             writeln!(
                 &mut file,
                 r#"    InternalAttr {{ attribute: "{}", property: "{}", attr_type: AttrType({}) }},"#,
                 attr, prop, flags
-            )
-            .unwrap();
+            )?;
         }
 
-        writeln!(&mut file, "];").unwrap();
+        writeln!(&mut file, "];")?;
     }
 
     {
@@ -56,8 +64,7 @@ fn gen_attrs(defs: &[(&'static str, &'static str, u32)], out_path: std::path::Pa
             &mut file,
             "static ATTRIBUTE_UNICASE_PHF: phf::Map<UniCase<&'static str>, usize> = \n{};\n",
             map_codegen.build()
-        )
-        .unwrap();
+        )?;
     }
 
     {
@@ -70,7 +77,8 @@ fn gen_attrs(defs: &[(&'static str, &'static str, u32)], out_path: std::path::Pa
             &mut file,
             "static PROPERTY_PHF: phf::Map<&'static str, usize> = \n{};\n",
             map_codegen.build()
-        )
-        .unwrap();
+        )?;
     }
+
+    Ok(())
 }

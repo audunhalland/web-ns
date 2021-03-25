@@ -41,7 +41,7 @@ fn codegen_attrs(
     writeln!(&mut file)?;
 
     {
-        writeln!(&mut file, "static attrs: &[InternalAttr] = &[")?;
+        writeln!(&mut file, "static INTERNAL_ATTRS: &[InternalAttr] = &[")?;
 
         for (attr, prop, flags) in defs {
             writeln!(

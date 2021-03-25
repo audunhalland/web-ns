@@ -19,6 +19,7 @@ pub enum Schema {
 // FIXME: Proper error impl
 #[derive(Debug, Eq, PartialEq)]
 pub enum Error {
+    InvalidName,
     Dang,
 }
 

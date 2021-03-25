@@ -6,7 +6,10 @@ use super::AttributeValue;
 /// Parse an Option of a string-based attribute value.
 /// None represents an attribute without a value, e.g. `<foo bar />`
 ///
-pub fn parse<S>(value: Option<S>, attr_type: AttrType) -> Result<AttributeValue, crate::Error>
+pub fn parse_attribute<S>(
+    value: Option<S>,
+    attr_type: AttrType,
+) -> Result<AttributeValue, crate::Error>
 where
     S: Into<String> + AsRef<str>,
 {
@@ -86,114 +89,123 @@ mod tests {
     fn parse_bool() {
         let boolean = AttrType(BOOL);
 
-        assert_eq!(parse(none(), boolean), Ok(AttributeValue::True));
-        assert_eq!(parse(Some(""), boolean), Ok(AttributeValue::True));
-        assert_eq!(parse(Some("true"), boolean), Ok(AttributeValue::True));
-        assert_eq!(parse(Some("false"), boolean), Ok(AttributeValue::False));
-        assert!(parse(Some("t"), boolean).is_err());
+        assert_eq!(parse_attribute(none(), boolean), Ok(AttributeValue::True));
+        assert_eq!(parse_attribute(Some(""), boolean), Ok(AttributeValue::True));
+        assert_eq!(
+            parse_attribute(Some("true"), boolean),
+            Ok(AttributeValue::True)
+        );
+        assert_eq!(
+            parse_attribute(Some("false"), boolean),
+            Ok(AttributeValue::False)
+        );
+        assert!(parse_attribute(Some("t"), boolean).is_err());
     }
 
     #[test]
     fn parse_true_or_false() {
         let tf = AttrType(TRUE | FALSE);
 
-        assert_eq!(parse(Some("true"), tf), Ok(AttributeValue::True));
-        assert_eq!(parse(Some("false"), tf), Ok(AttributeValue::False));
-        assert!(parse(none(), tf).is_err());
-        assert!(parse(Some("t"), tf).is_err());
+        assert_eq!(parse_attribute(Some("true"), tf), Ok(AttributeValue::True));
+        assert_eq!(
+            parse_attribute(Some("false"), tf),
+            Ok(AttributeValue::False)
+        );
+        assert!(parse_attribute(none(), tf).is_err());
+        assert!(parse_attribute(Some("t"), tf).is_err());
     }
 
     #[test]
     fn parse_empty_string() {
         let es = AttrType(EMPTY_STRING);
         assert_eq!(
-            parse(Some(""), es),
+            parse_attribute(Some(""), es),
             Ok(AttributeValue::String("".to_string()))
         );
 
-        assert!(parse(none(), es).is_err());
-        assert!(parse(Some("true"), es).is_err());
-        assert!(parse(Some("false"), es).is_err());
-        assert!(parse(Some("t"), es).is_err());
+        assert!(parse_attribute(none(), es).is_err());
+        assert!(parse_attribute(Some("true"), es).is_err());
+        assert!(parse_attribute(Some("false"), es).is_err());
+        assert!(parse_attribute(Some("t"), es).is_err());
     }
 
     #[test]
     fn parse_number() {
         let num = AttrType(NUMBER);
         assert_eq!(
-            parse(Some("a"), num),
+            parse_attribute(Some("a"), num),
             Ok(AttributeValue::String("a".to_string()))
         );
-        assert_eq!(parse(Some("true"), num), Ok(AttributeValue::True));
+        assert_eq!(parse_attribute(Some("true"), num), Ok(AttributeValue::True));
 
-        assert!(parse(Some(""), num).is_err());
+        assert!(parse_attribute(Some(""), num).is_err());
     }
 
     #[test]
     fn parse_space_sep() {
         let sep = AttrType(STRING | SPACE_SEP);
         assert_eq!(
-            parse(Some("a"), sep),
+            parse_attribute(Some("a"), sep),
             Ok(AttributeValue::String("a".to_string()))
         );
-        assert_eq!(parse(Some("true"), sep), Ok(AttributeValue::True));
+        assert_eq!(parse_attribute(Some("true"), sep), Ok(AttributeValue::True));
         assert_eq!(
-            parse(Some("a b "), sep),
+            parse_attribute(Some("a b "), sep),
             Ok(AttributeValue::Multi(vec![
                 "a".to_string(),
                 "b".to_string()
             ]))
         );
 
-        assert!(parse(none(), sep).is_err());
+        assert!(parse_attribute(none(), sep).is_err());
     }
 
     #[test]
     fn parse_comma_sep() {
         let sep = AttrType(STRING | COMMA_SEP);
         assert_eq!(
-            parse(Some("a"), sep),
+            parse_attribute(Some("a"), sep),
             Ok(AttributeValue::String("a".to_string()))
         );
-        assert_eq!(parse(Some("true"), sep), Ok(AttributeValue::True));
+        assert_eq!(parse_attribute(Some("true"), sep), Ok(AttributeValue::True));
         assert_eq!(
-            parse(Some("a b "), sep),
+            parse_attribute(Some("a b "), sep),
             Ok(AttributeValue::String("a b".to_string()))
         );
         assert_eq!(
-            parse(Some("a, b "), sep),
+            parse_attribute(Some("a, b "), sep),
             Ok(AttributeValue::Multi(vec![
                 "a".to_string(),
                 "b".to_string()
             ]))
         );
 
-        assert!(parse(none(), sep).is_err());
+        assert!(parse_attribute(none(), sep).is_err());
     }
 
     #[test]
     fn parse_comma_or_space_sep() {
         let sep = AttrType(STRING | COMMA_OR_SPACE_SEP);
         assert_eq!(
-            parse(Some("a"), sep),
+            parse_attribute(Some("a"), sep),
             Ok(AttributeValue::String("a".to_string()))
         );
-        assert_eq!(parse(Some("true"), sep), Ok(AttributeValue::True));
+        assert_eq!(parse_attribute(Some("true"), sep), Ok(AttributeValue::True));
         assert_eq!(
-            parse(Some("a b "), sep),
+            parse_attribute(Some("a b "), sep),
             Ok(AttributeValue::Multi(vec![
                 "a".to_string(),
                 "b".to_string()
             ]))
         );
         assert_eq!(
-            parse(Some("a, b "), sep),
+            parse_attribute(Some("a, b "), sep),
             Ok(AttributeValue::Multi(vec![
                 "a".to_string(),
                 "b".to_string()
             ]))
         );
 
-        assert!(parse(none(), sep).is_err());
+        assert!(parse_attribute(none(), sep).is_err());
     }
 }

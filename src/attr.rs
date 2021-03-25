@@ -73,15 +73,15 @@ impl Attribute {
     /// use web_schema::attr::*;
     ///
     /// let attr = parse_attribute("class", Schema::Html5).unwrap();
-    /// let value = attr.parse_value(Some("foo bar")).unwrap();
+    /// let value = attr.parse_attribute_value(Some("foo bar")).unwrap();
     /// assert_eq!(value, AttributeValue::Multi(vec!["foo".to_string(), "bar".to_string()]));
     /// ```
     ///
-    pub fn parse_value<S>(&self, value: Option<S>) -> Result<AttributeValue, crate::Error>
+    pub fn parse_attribute_value<S>(&self, value: Option<S>) -> Result<AttributeValue, crate::Error>
     where
         S: Into<String> + AsRef<str>,
     {
-        value::parse(value, self.attr_type())
+        value::parse_attribute(value, self.attr_type())
     }
 
     fn attr_type(&self) -> AttrType {
@@ -144,10 +144,10 @@ pub enum AttributeValue {
 /// assert_eq!(attr.property(), "dataFoobar");
 /// ```
 ///
-pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
+pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, crate::Error> {
     match schema {
         Schema::Html5 => match schema::html::attrs::internal_attr_by_name(attribute) {
-            Some(internal_attr) => Some(Attribute(AttrImpl::Internal(internal_attr))),
+            Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
             None => {
                 if attribute.len() > 5
                     && unicase::UniCase::new(&attribute[..5]) == unicase::UniCase::new("data-")
@@ -158,13 +158,13 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
                         attribute.chars().nth(5).unwrap().to_uppercase(),
                         &attribute[6..]
                     );
-                    Some(Attribute(AttrImpl::Data(Box::new(DataAttr {
+                    Ok(Attribute(AttrImpl::Data(Box::new(DataAttr {
                         strbuf,
                         buf_property_start: attribute.len(),
                         attr_type: AttrType(flags::STRING),
                     }))))
                 } else {
-                    None
+                    Err(crate::Error::InvalidName)
                 }
             }
         },
@@ -184,11 +184,11 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Option<Attribute> {
 /// assert_eq!(attr.attribute(), "class");
 /// ```
 ///
-pub fn parse_property(property: &str, schema: Schema) -> Option<Attribute> {
+pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, crate::Error> {
     match schema {
         Schema::Html5 => match schema::html::attrs::internal_attr_by_property(property) {
-            Some(internal_attr) => Some(Attribute(AttrImpl::Internal(internal_attr))),
-            None => None,
+            Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
+            None => Err(crate::Error::InvalidName),
         },
     }
 }
@@ -198,7 +198,7 @@ mod tests {
     use super::*;
 
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
-        if let Some(attribute) = parse_attribute(name, Schema::Html5) {
+        if let Ok(attribute) = parse_attribute(name, Schema::Html5) {
             let expected = expected.expect("Expected no match, but there was a match");
             assert_eq!(attribute.attribute(), expected.0);
             assert_eq!(attribute.property(), expected.1);
@@ -225,8 +225,8 @@ mod tests {
 
     #[test]
     fn lookup_html_property() {
-        assert!(parse_property("className", Schema::Html5).is_some());
-        assert!(parse_property("ClassName", Schema::Html5).is_none());
-        assert!(parse_property("foobar", Schema::Html5).is_none());
+        assert!(parse_property("className", Schema::Html5).is_ok());
+        assert!(parse_property("ClassName", Schema::Html5).is_err());
+        assert!(parse_property("foobar", Schema::Html5).is_err());
     }
 }

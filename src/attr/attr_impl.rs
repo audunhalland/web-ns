@@ -1,5 +1,4 @@
 use super::attr_type::AttrType;
-use crate::static_unicase::StaticUniCase;
 
 #[derive(Clone)]
 pub enum AttrImpl {
@@ -7,7 +6,7 @@ pub enum AttrImpl {
     Data(Box<DataAttr>),
 }
 pub struct InternalAttr {
-    pub attribute: StaticUniCase,
+    pub attribute: &'static str,
     pub property: &'static str,
     pub attr_type: AttrType,
 }

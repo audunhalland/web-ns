@@ -9,6 +9,7 @@ use unicase::UniCase;
 /// UniCase wrapper suitable as a key for phf::Map.
 /// For the reason why, see the Borrow impl for it.
 ///
+#[derive(Clone)]
 pub struct StaticUniCase(UniCase<&'static str>);
 
 impl StaticUniCase {
@@ -63,12 +64,6 @@ impl<'a> FmtConst for StaticUniCase {
 /// a 'static &str reference, but we don't have that when we want to look up in the map.
 ///
 impl<'a> std::borrow::Borrow<UniCase<&'a str>> for StaticUniCase {
-    fn borrow(&self) -> &UniCase<&'a str> {
-        &self.0
-    }
-}
-
-impl<'a> std::borrow::Borrow<UniCase<&'a str>> for &StaticUniCase {
     fn borrow(&self) -> &UniCase<&'a str> {
         &self.0
     }

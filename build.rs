@@ -47,7 +47,7 @@ fn codegen_attrs(
     let defs: Vec<_> = defs
         .iter()
         .map(|(attr, prop, flags)| Def {
-            const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
+            const_ident: format!("INTERNAL_{}", attr.replace('-', "_").to_uppercase()),
             attr,
             prop,
             flags: *flags,
@@ -64,7 +64,7 @@ fn codegen_attrs(
             writeln!(
                 &mut file,
                 r#"const {const_ident}: InternalAttr = InternalAttr {{
-    attribute: StaticUniCase::new("{attr}"),
+    attribute: "{attr}",
     property: "{prop}",
     attr_type: AttrType({flags})
 }};"#,
@@ -85,7 +85,7 @@ fn codegen_attrs(
                     def,
                     PhfKeyRef {
                         key: StaticUniCase::new(def.attr),
-                        ref_expr: format!("&{}.attribute", def.const_ident),
+                        ref_expr: format!("StaticUniCase::new({}.attribute)", def.const_ident),
                     },
                 )
             })
@@ -98,7 +98,7 @@ fn codegen_attrs(
 
         writeln!(
             &mut file,
-            "static ATTRIBUTE_UNICASE_PHF: phf::Map<&'static StaticUniCase, &'static InternalAttr> = \n{};\n",
+            "static ATTRIBUTE_UNICASE_PHF: phf::Map<StaticUniCase, &'static InternalAttr> = \n{};\n",
             map_codegen.build()
         )?;
     }

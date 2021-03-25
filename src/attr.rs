@@ -37,7 +37,7 @@ impl Attribute {
     ///
     pub fn attribute(&self) -> &str {
         match &self.0 {
-            AttrImpl::Internal(attr) => attr.attribute.as_ref(),
+            AttrImpl::Internal(attr) => attr.attribute,
             AttrImpl::Data(attr) => &attr.strbuf[..attr.buf_property_start],
         }
     }

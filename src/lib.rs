@@ -5,7 +5,7 @@ pub mod attr;
 mod static_unicase;
 
 pub mod schema {
-    pub mod html;
+    pub mod html5;
 }
 
 ///

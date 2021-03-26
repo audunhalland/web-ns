@@ -11,8 +11,8 @@ mod static_unicase;
 #[path = "src/attr/attr_type.rs"]
 mod attr_type;
 
-#[path = "src/defs/html_defs.rs"]
-mod html_defs;
+#[path = "src/defs/html5_defs.rs"]
+mod html5_defs;
 
 use static_unicase::StaticUniCase;
 
@@ -24,7 +24,7 @@ fn codegen() -> std::io::Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
 
     codegen_attrs(
-        html_defs::attrs::DEFS,
+        html5_defs::attrs::DEFS,
         Path::new(&out_dir).join("codegen_html_attrs.rs"),
     )?;
 

@@ -175,7 +175,7 @@ pub enum SerializedAttributeValue {
 ///
 pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, crate::Error> {
     match schema {
-        Schema::Html5 => match schema::html::attrs::internal_attr_by_name(attribute) {
+        Schema::Html5 => match schema::html5::attrs::internal_attr_by_name(attribute) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
             None => {
                 if attribute.len() > 5
@@ -215,7 +215,7 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, cra
 ///
 pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, crate::Error> {
     match schema {
-        Schema::Html5 => match schema::html::attrs::internal_attr_by_property(property) {
+        Schema::Html5 => match schema::html5::attrs::internal_attr_by_property(property) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
             None => Err(crate::Error::InvalidName),
         },

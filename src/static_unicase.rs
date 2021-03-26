@@ -55,10 +55,12 @@ impl<'a> FmtConst for StaticUniCase {
 ///
 /// Now to the point:
 ///
-/// StaticAsciiUniCaseSlice borrows as a &AsciiUniCaseSlice<'a> with generic lifetime 'a,
-/// allowing `phf::Map::get` to take a &AsciiUniCaseSlice<'a> instead of the static version.
+/// StaticUniCase borrows as a &UniCase<&'a str> with generic lifetime 'a,
+/// allowing `phf::Map::get` to take a &UniCase<&'a str> instead of the static version.
 /// Internally, it will borrow its static, stored key as this type, since
 /// `phf::Map<K, _>::get<T>(key: &T) where K: Borrow<T>`.
+/// When this happens, the 'static lifetime will be "upcasted" to its supertype, the
+/// actual instantiated lifetime 'a. (the 'static lifetime is a subtype of every other shorter lifetime)
 ///
 /// Using two different types solves the problem with ::get(key: &K) because K requires
 /// a 'static &str reference, but we don't have that when we want to look up in the map.

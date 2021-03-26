@@ -28,11 +28,10 @@ impl Attribute {
     /// # Usage
     ///
     /// ```
-    /// use web_schema::Schema;
-    /// use web_schema::attr::parse_attribute;
+    /// use web_schema::schema::html5;
     ///
-    /// let attr = parse_attribute("ClAsS", Schema::Html5).unwrap();
-    /// assert_eq!(attr.attribute(), "class");
+    /// let class = html5::attr::class();
+    /// assert_eq!(class.attribute(), "class");
     /// ```
     ///
     pub fn attribute(&self) -> &str {
@@ -48,11 +47,10 @@ impl Attribute {
     /// # Usage
     ///
     /// ```
-    /// use web_schema::Schema;
-    /// use web_schema::attr::parse_attribute;
+    /// use web_schema::schema::html5;
     ///
-    /// let attr = parse_attribute("ClAsS", Schema::Html5).unwrap();
-    /// assert_eq!(attr.property(), "className");
+    /// let class = html5::attr::class();
+    /// assert_eq!(class.property(), "className");
     /// ```
     ///
     pub fn property(&self) -> &str {
@@ -69,11 +67,11 @@ impl Attribute {
     /// # Usage
     ///
     /// ```
-    /// use web_schema::Schema;
-    /// use web_schema::attr::*;
+    /// use web_schema::schema::html5;
+    /// use web_schema::attr::AttributeValue;
     ///
-    /// let attr = parse_attribute("class", Schema::Html5).unwrap();
-    /// let value = attr.parse_attribute_value(Some("foo bar")).unwrap();
+    /// let class = html5::attr::class();
+    /// let value = class.parse_attribute_value(Some("foo bar")).unwrap();
     /// assert_eq!(value, AttributeValue::Multi(vec!["foo".to_string(), "bar".to_string()]));
     /// ```
     ///
@@ -175,7 +173,7 @@ pub enum SerializedAttributeValue {
 ///
 pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, crate::Error> {
     match schema {
-        Schema::Html5 => match schema::html5::attrs::internal_attr_by_name(attribute) {
+        Schema::Html5 => match schema::html5::attr::internal_attr_by_name(attribute) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
             None => {
                 if attribute.len() > 5
@@ -215,7 +213,7 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, cra
 ///
 pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, crate::Error> {
     match schema {
-        Schema::Html5 => match schema::html5::attrs::internal_attr_by_property(property) {
+        Schema::Html5 => match schema::html5::attr::internal_attr_by_property(property) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
             None => Err(crate::Error::InvalidName),
         },

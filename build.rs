@@ -49,7 +49,7 @@ fn codegen_attrs(
         .iter()
         .map(|(attr, prop, flags)| Def {
             const_ident: format!("INTERNAL_{}", attr.replace('-', "_").to_uppercase()),
-            pub_fn_ident: format!("attr_{}", attr.replace('-', "_")),
+            pub_fn_ident: format!("r#{}", attr.replace('-', "_")),
             attr,
             prop,
             flags: *flags,

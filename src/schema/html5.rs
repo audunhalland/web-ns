@@ -1,4 +1,4 @@
-pub mod attrs {
+pub mod attr {
     //!
     //! Collection of HTML5 attributes.
     //!

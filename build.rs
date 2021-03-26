@@ -39,6 +39,7 @@ fn codegen_attrs(
 
     struct Def {
         const_ident: String,
+        pub_fn_ident: String,
         attr: &'static str,
         prop: &'static str,
         flags: u32,
@@ -48,22 +49,41 @@ fn codegen_attrs(
         .iter()
         .map(|(attr, prop, flags)| Def {
             const_ident: format!("INTERNAL_{}", attr.replace('-', "_").to_uppercase()),
+            pub_fn_ident: format!("attr_{}", attr.replace('-', "_")),
             attr,
             prop,
             flags: *flags,
         })
         .collect();
 
+    writeln!(&mut file, "use crate::attr::Attribute;")?;
     writeln!(&mut file, "use crate::attr::attr_impl::*;")?;
     writeln!(&mut file, "use crate::attr::attr_type::*;")?;
     writeln!(&mut file, "use crate::static_unicase::*;")?;
     writeln!(&mut file)?;
 
+    // Public interface:
     {
         for def in defs.iter() {
             writeln!(
                 &mut file,
-                r#"const {const_ident}: InternalAttr = InternalAttr {{
+                r#"
+pub fn {pub_fn_ident}() -> Attribute {{
+    AttrImpl::Internal(&{const_ident}).into()
+}}"#,
+                pub_fn_ident = def.pub_fn_ident,
+                const_ident = def.const_ident
+            )?;
+        }
+    }
+
+    // Internal definitions:
+    {
+        for def in defs.iter() {
+            writeln!(
+                &mut file,
+                r#"
+const {const_ident}: InternalAttr = InternalAttr {{
     attribute: "{attr}",
     property: "{prop}",
     attr_type: AttrType({flags})

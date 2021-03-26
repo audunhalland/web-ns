@@ -126,6 +126,12 @@ impl Ord for Attribute {
     }
 }
 
+impl From<AttrImpl> for Attribute {
+    fn from(attr_impl: AttrImpl) -> Self {
+        Self(attr_impl)
+    }
+}
+
 ///
 /// A typed attribute value.
 ///

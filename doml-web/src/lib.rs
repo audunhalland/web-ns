@@ -22,6 +22,14 @@ pub enum Error {
     Dang,
 }
 
+mod core {
+    trait Namespace {
+        // parsers, etc
+    }
+
+    trait Tag {}
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

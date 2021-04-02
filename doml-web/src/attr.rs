@@ -28,7 +28,7 @@ impl Attribute {
     /// # Usage
     ///
     /// ```
-    /// use web_schema::schema::html5;
+    /// use doml_web::schema::html5;
     ///
     /// let class = html5::attr::class();
     /// assert_eq!(class.attribute(), "class");
@@ -47,7 +47,7 @@ impl Attribute {
     /// # Usage
     ///
     /// ```
-    /// use web_schema::schema::html5;
+    /// use doml_web::schema::html5;
     ///
     /// let class = html5::attr::class();
     /// assert_eq!(class.property(), "className");
@@ -67,8 +67,8 @@ impl Attribute {
     /// # Usage
     ///
     /// ```
-    /// use web_schema::schema::html5;
-    /// use web_schema::attr::AttributeValue;
+    /// use doml_web::schema::html5;
+    /// use doml_web::attr::AttributeValue;
     ///
     /// let class = html5::attr::class();
     /// let value = class.parse_attribute_value(Some("foo bar")).unwrap();
@@ -169,8 +169,8 @@ pub enum SerializedAttributeValue {
 /// For known attributes, the matching is case-insensitive.
 ///
 /// ```
-/// use web_schema::Schema;
-/// use web_schema::attr::parse_attribute;
+/// use doml_web::Schema;
+/// use doml_web::attr::parse_attribute;
 ///
 /// let attr = parse_attribute("data-foobar", Schema::Html5).unwrap();
 /// assert_eq!(attr.attribute(), "data-foobar");
@@ -210,8 +210,8 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, cra
 /// # Usage
 ///
 /// ```
-/// use web_schema::Schema;
-/// use web_schema::attr::parse_property;
+/// use doml_web::Schema;
+/// use doml_web::attr::parse_property;
 ///
 /// let attr = parse_property("className", Schema::Html5).unwrap();
 /// assert_eq!(attr.attribute(), "class");

@@ -1,2 +1,8 @@
+[package]
+name = "doml"
+version = "0.1.0"
+authors = ["Audun Halland <audun.halland@gmail.com>"]
+edition = "2018"
+
 [workspace]
 members = ["doml-web"]

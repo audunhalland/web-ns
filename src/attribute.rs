@@ -71,7 +71,7 @@ pub struct StaticAttribute {
 /// A [Namespace] may have a non-fixed set of allowed attributes, and in that case the name
 /// of the attribute must be dynamically allocated.
 ///
-pub trait DynamicAttribute {
+pub trait DynamicAttribute: Send + Sync {
     fn namespace(&self) -> &'static dyn Namespace;
     fn local_name(&self) -> &str;
 }

@@ -21,14 +21,20 @@ pub enum Schema {
 struct Private;
 
 pub mod html5 {
+    //! HTML5 implementation
+
     use super::*;
 
-    mod attrs {
+    pub mod attrs {
+        //! Attribute definitions for HTML5
+
         include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
     }
 
+    /// A [doml::Namespace] implementation for HTML5.
     pub struct Html5Namespace(Private);
 
+    /// The global [Html5Namespace] instance.
     pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
     impl doml::Namespace for Html5Namespace {

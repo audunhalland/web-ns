@@ -30,6 +30,7 @@ fn codegen() -> std::io::Result<()> {
 
     codegen_static_web_attrs(
         html5_defs::attrs::DEFS,
+        "HTML5",
         "crate::html5::HTML5_NS",
         Path::new(&out_dir).join("codegen_static_html_attrs.rs"),
     )?;
@@ -161,14 +162,15 @@ const {const_ident}: InternalAttr = InternalAttr {{
 
 fn codegen_static_web_attrs(
     defs: &[(&'static str, &'static str, u32)],
-    namespace: &'static str,
+    namespace_name: &'static str,
+    namespace_ident: &'static str,
     out_path: std::path::PathBuf,
 ) -> std::io::Result<()> {
     let mut file = BufWriter::new(File::create(&out_path)?);
 
     struct Def {
         static_id: usize,
-        pub_fn_ident: String,
+        pub_const_ident: String,
         attr: &'static str,
         prop: &'static str,
         flags: u32,
@@ -179,7 +181,7 @@ fn codegen_static_web_attrs(
         .enumerate()
         .map(|(static_id, (attr, prop, flags))| Def {
             static_id,
-            pub_fn_ident: format!("r#{}", attr.replace('-', "_")),
+            pub_const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
             attr,
             prop,
             flags: *flags,
@@ -201,20 +203,23 @@ fn codegen_static_web_attrs(
             writeln!(
                 &mut file,
                 r#"
-pub fn {pub_fn_ident}() -> Attribute {{
-    Attribute::new_static(&WEB_ATTRS[{static_id}].static_attribute)
-}}"#,
-                pub_fn_ident = def.pub_fn_ident,
+/// The {namespace_name} `{attr}` attribute
+pub const {pub_const_ident}: Attribute = Attribute::new_static(&WEB_ATTRS[{static_id}].static_attribute);"#,
+                namespace_name = namespace_name,
+                attr = def.attr,
+                pub_const_ident = def.pub_const_ident,
                 static_id = def.static_id,
             )?;
         }
+
+        writeln!(&mut file, "",)?;
     }
 
     // Attribute array:
     {
         writeln!(
             &mut file,
-            "pub(crate) static WEB_ATTRS: [StaticWebAttr; {len}] = [",
+            "pub(crate) const WEB_ATTRS: [StaticWebAttr; {len}] = [",
             len = defs.len()
         )?;
 
@@ -223,14 +228,14 @@ pub fn {pub_fn_ident}() -> Attribute {{
                 &mut file,
                 r#"    StaticWebAttr {{
         static_attribute: StaticAttribute {{
-            namespace: &{namespace},
+            namespace: &{namespace_ident},
             static_id: {static_id},
         }},
         name: "{attr}",
         property: "{prop}",
         attr_type: AttrType({flags})
     }},"#,
-                namespace = namespace,
+                namespace_ident = namespace_ident,
                 static_id = def.static_id,
                 attr = def.attr,
                 prop = def.prop,
@@ -238,7 +243,7 @@ pub fn {pub_fn_ident}() -> Attribute {{
             )?;
         }
 
-        writeln!(&mut file, "];",)?;
+        writeln!(&mut file, "];\n",)?;
     }
 
     // Attribute name map:

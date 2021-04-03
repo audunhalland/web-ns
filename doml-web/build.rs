@@ -30,6 +30,7 @@ fn codegen() -> std::io::Result<()> {
 
     codegen_static_web_attrs(
         html5_defs::attrs::DEFS,
+        "crate::html5::HTML5_NS",
         Path::new(&out_dir).join("codegen_static_html_attrs.rs"),
     )?;
 
@@ -160,6 +161,7 @@ const {const_ident}: InternalAttr = InternalAttr {{
 
 fn codegen_static_web_attrs(
     defs: &[(&'static str, &'static str, u32)],
+    namespace: &'static str,
     out_path: std::path::PathBuf,
 ) -> std::io::Result<()> {
     let mut file = BufWriter::new(File::create(&out_path)?);
@@ -189,7 +191,6 @@ fn codegen_static_web_attrs(
         "use doml::attribute::{{Attribute, StaticAttribute}};"
     )?;
     writeln!(&mut file, "use crate::attr::StaticWebAttr;")?;
-    writeln!(&mut file, "use crate::HTML5;")?;
     writeln!(&mut file, "use crate::attr::attr_type::*;")?;
     writeln!(&mut file, "use crate::static_unicase::*;")?;
     writeln!(&mut file)?;
@@ -213,7 +214,7 @@ pub fn {pub_fn_ident}() -> Attribute {{
     {
         writeln!(
             &mut file,
-            "static WEB_ATTRS: [StaticWebAttr; {len}] = [",
+            "pub(crate) static WEB_ATTRS: [StaticWebAttr; {len}] = [",
             len = defs.len()
         )?;
 
@@ -222,13 +223,14 @@ pub fn {pub_fn_ident}() -> Attribute {{
                 &mut file,
                 r#"    StaticWebAttr {{
         static_attribute: StaticAttribute {{
-            namespace: &HTML5,
+            namespace: &{namespace},
             static_id: {static_id},
         }},
         name: "{attr}",
         property: "{prop}",
         attr_type: AttrType({flags})
     }},"#,
+                namespace = namespace,
                 static_id = def.static_id,
                 attr = def.attr,
                 prop = def.prop,
@@ -261,7 +263,7 @@ pub fn {pub_fn_ident}() -> Attribute {{
 
         writeln!(
             &mut file,
-            "static ATTRIBUTE_UNICASE_PHF: phf::Map<StaticUniCase, &'static StaticWebAttr> = \n{};\n",
+            "pub(crate) static ATTRIBUTE_UNICASE_PHF: phf::Map<StaticUniCase, &'static StaticWebAttr> = \n{};\n",
             map_codegen.build()
         )?;
     }
@@ -288,7 +290,7 @@ pub fn {pub_fn_ident}() -> Attribute {{
 
         writeln!(
             &mut file,
-            "static PROPERTY_PHF: phf::Map<&'static str, &'static StaticWebAttr> = \n{};\n",
+            "pub(crate) static PROPERTY_PHF: phf::Map<&'static str, &'static StaticWebAttr> = \n{};\n",
             map_codegen.build()
         )?;
     }

@@ -9,11 +9,20 @@ pub mod attr_impl;
 pub mod attr_type;
 mod value;
 
+use doml::attribute::StaticAttribute;
+
 use crate::schema;
 use crate::Schema;
 
 use attr_impl::*;
 use attr_type::*;
+
+pub struct StaticWebAttr {
+    pub static_attribute: StaticAttribute,
+    pub name: &'static str,
+    pub property: &'static str,
+    pub attr_type: AttrType,
+}
 
 ///
 /// A typed attribute used in web documents.

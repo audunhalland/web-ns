@@ -3,7 +3,7 @@
 use doml::attribute::Attribute as DomlAttribute;
 use doml::element::Element as DomlElement;
 
-pub mod attr;
+mod attr;
 
 mod static_unicase;
 
@@ -19,6 +19,10 @@ pub enum Schema {
 }
 
 struct Private;
+
+mod html5 {
+    include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
+}
 
 pub struct Html5(Private);
 
@@ -39,13 +43,5 @@ impl doml::Namespace for Html5 {
 
     fn get_static_local_name(&self, input: doml::Static) -> &'static str {
         todo!("lookup")
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
     }
 }

@@ -10,7 +10,7 @@ use super::attr_type::*;
 pub fn parse_attribute<S>(
     value: Option<S>,
     attr_type: AttrType,
-) -> Result<AttributeValue, crate::Error>
+) -> Result<AttributeValue, doml::Error>
 where
     S: Into<String> + AsRef<str>,
 {
@@ -30,7 +30,7 @@ where
             if attr_type.is_bool() {
                 Ok(AttributeValue::True)
             } else {
-                Err(crate::Error::Dang)
+                Err(doml::Error::InvalidAttributeValue)
             }
         }
         Some(string) => match string.as_ref() {
@@ -40,21 +40,21 @@ where
                 } else if attr_type.any(EMPTY_STRING | STRING) {
                     Ok(AttributeValue::String(String::new()))
                 } else {
-                    Err(crate::Error::Dang)
+                    Err(doml::Error::InvalidAttributeValue)
                 }
             }
             "true" => {
                 if attr_type.any(BOOL | TRUE | STRING | NUMBER) {
                     Ok(AttributeValue::True)
                 } else {
-                    Err(crate::Error::Dang)
+                    Err(doml::Error::InvalidAttributeValue)
                 }
             }
             "false" => {
                 if attr_type.any(BOOL | TRUE | STRING | NUMBER) {
                     Ok(AttributeValue::False)
                 } else {
-                    Err(crate::Error::Dang)
+                    Err(doml::Error::InvalidAttributeValue)
                 }
             }
             _ => {
@@ -71,7 +71,7 @@ where
                 } else if attr_type.any(STRING | NUMBER) {
                     Ok(AttributeValue::String(string.into()))
                 } else {
-                    Err(crate::Error::Dang)
+                    Err(doml::Error::InvalidAttributeValue)
                 }
             }
         },

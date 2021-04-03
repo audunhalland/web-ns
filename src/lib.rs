@@ -15,6 +15,7 @@
 //! Elements and attributes refer back to their originating namespace, so a document may be modelled
 //! using a mix of namespaces.
 //!
+#![forbid(unsafe_code)]
 
 pub mod any_ns;
 pub mod attribute;
@@ -56,10 +57,21 @@ pub trait Namespace: Send + Sync + std::any::Any {
         element: &element::Element,
         local_name: &str,
     ) -> Result<attribute::Attribute, Error>;
+
+    ///
+    /// Get the local name of a static
+    ///
+    fn get_static_local_name(&self, input: Static) -> &'static str;
+}
+
+pub enum Static {
+    Element(usize),
+    Attribute(usize),
 }
 
 #[derive(Debug)]
 pub enum Error {
     InvalidNamespace,
     InvalidAttribute,
+    InvalidAttributeValue,
 }

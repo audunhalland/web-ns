@@ -1,6 +1,6 @@
 use super::attribute::*;
 use super::element::*;
-use super::{Error, Namespace};
+use super::{Error, Namespace, Static};
 
 ///
 /// A completely untyped namespace, which can be used for representing any kind of markup or DOM,
@@ -27,6 +27,10 @@ impl super::Namespace for AnyNamespace {
         Ok(Attribute::new_dynamic(Box::new(AnyAttribute {
             local_name: local_name.to_string(),
         })))
+    }
+
+    fn get_static_local_name(&self, _: Static) -> &'static str {
+        panic!("ANY_NS did not export any static elements")
     }
 }
 

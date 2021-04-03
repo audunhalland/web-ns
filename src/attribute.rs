@@ -1,4 +1,4 @@
-use super::Namespace;
+use super::{Namespace, Static};
 
 ///
 /// An attribute definition.
@@ -43,7 +43,9 @@ impl Attribute {
     ///
     pub fn local_name(&self) -> &str {
         match &self.0 {
-            Storage::Static(static_attr) => static_attr.local_name,
+            Storage::Static(static_attr) => static_attr
+                .namespace
+                .get_static_local_name(Static::Attribute(static_attr.static_id)),
             Storage::Dynamic(dynamic_attr) => dynamic_attr.local_name(),
         }
     }
@@ -61,7 +63,7 @@ enum Storage {
 ///
 pub struct StaticAttribute {
     pub namespace: &'static dyn Namespace,
-    pub local_name: &'static str,
+    pub static_id: usize,
 }
 
 ///

@@ -1,5 +1,8 @@
 #![forbid(unsafe_code)]
 
+use doml::attribute::Attribute as DomlAttribute;
+use doml::element::Element as DomlElement;
+
 pub mod attr;
 
 mod static_unicase;
@@ -15,19 +18,28 @@ pub enum Schema {
     Html5,
 }
 
-// FIXME: Proper error impl
-#[derive(Debug, Eq, PartialEq)]
-pub enum Error {
-    InvalidName,
-    Dang,
-}
+struct Private;
 
-mod core {
-    trait Namespace {
-        // parsers, etc
+pub struct Html5(Private);
+
+pub const HTML5: Html5 = Html5(Private);
+
+impl doml::Namespace for Html5 {
+    fn element_by_local_name(&self, local_name: &str) -> Result<DomlElement, doml::Error> {
+        todo!()
     }
 
-    trait Tag {}
+    fn attribute_by_local_name(
+        &self,
+        element: &DomlElement,
+        local_name: &str,
+    ) -> Result<DomlAttribute, doml::Error> {
+        todo!()
+    }
+
+    fn get_static_local_name(&self, input: doml::Static) -> &'static str {
+        todo!("lookup")
+    }
 }
 
 #[cfg(test)]

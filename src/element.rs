@@ -1,4 +1,4 @@
-use super::Namespace;
+use super::{Namespace, Static};
 
 ///
 /// An element definition.
@@ -26,7 +26,9 @@ impl Element {
     ///
     pub fn local_name(&self) -> &str {
         match &self.0 {
-            Storage::Static(static_element) => static_element.local_name,
+            Storage::Static(static_element) => static_element
+                .namespace
+                .get_static_local_name(Static::Element(static_element.static_id)),
             Storage::Dynamic(dynamic_element) => dynamic_element.local_name(),
         }
     }
@@ -39,10 +41,10 @@ enum Storage {
 
 pub struct StaticElement {
     pub namespace: &'static dyn Namespace,
-    pub local_name: &'static str,
+    pub static_id: usize,
 }
 
-pub trait DynamicElement {
+pub trait DynamicElement: std::any::Any {
     fn namespace(&self) -> &'static dyn Namespace;
     fn local_name(&self) -> &str;
 }

@@ -75,7 +75,7 @@ impl Attribute {
     /// assert_eq!(value, AttributeValue::Multi(vec!["foo".to_string(), "bar".to_string()]));
     /// ```
     ///
-    pub fn parse_attribute_value<S>(&self, value: Option<S>) -> Result<AttributeValue, crate::Error>
+    pub fn parse_attribute_value<S>(&self, value: Option<S>) -> Result<AttributeValue, doml::Error>
     where
         S: Into<String> + AsRef<str>,
     {
@@ -177,7 +177,7 @@ pub enum SerializedAttributeValue {
 /// assert_eq!(attr.property(), "dataFoobar");
 /// ```
 ///
-pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, crate::Error> {
+pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, doml::Error> {
     match schema {
         Schema::Html5 => match schema::html5::attr::internal_attr_by_name(attribute) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
@@ -197,7 +197,7 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, cra
                         attr_type: AttrType(flags::STRING),
                     }))))
                 } else {
-                    Err(crate::Error::InvalidName)
+                    Err(doml::Error::InvalidAttribute)
                 }
             }
         },
@@ -217,11 +217,11 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, cra
 /// assert_eq!(attr.attribute(), "class");
 /// ```
 ///
-pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, crate::Error> {
+pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, doml::Error> {
     match schema {
         Schema::Html5 => match schema::html5::attr::internal_attr_by_property(property) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
-            None => Err(crate::Error::InvalidName),
+            None => Err(doml::Error::InvalidAttribute),
         },
     }
 }

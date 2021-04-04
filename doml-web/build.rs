@@ -194,10 +194,8 @@ fn codegen_static_web_attrs(
         })
         .collect();
 
-    writeln!(
-        &mut file,
-        "use doml::attribute::{{Attribute, StaticAttribute}};"
-    )?;
+    writeln!(&mut file, "use doml::attribute::Attribute;")?;
+    writeln!(&mut file, "use doml::name::StaticName;")?;
     writeln!(
         &mut file,
         "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrClass}};"
@@ -297,18 +295,18 @@ pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
         writeln!(&mut file, "}};\n",)?;
     }
 
-    // StaticAttr array:
+    // Static name array:
     {
         writeln!(
             &mut file,
-            "pub(crate) const __STATIC_ATTRS: [StaticAttribute; {len}] = [",
+            "pub(crate) const __STATIC_NAMES: [StaticName; {len}] = [",
             len = defs.len()
         )?;
 
         for def in defs.iter() {
             writeln!(
                 &mut file,
-                r#"    StaticAttribute {{ class: &__CLASS, static_id: {static_id} }},"#,
+                r#"    StaticName {{ class: &__CLASS, static_id: {static_id} }},"#,
                 static_id = def.static_id
             )?;
         }
@@ -323,7 +321,7 @@ pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
                 &mut file,
                 r#"
 /// The {ns_name} `{attr}` attribute
-pub const {pub_const_ident}: Attribute = Attribute::new_static(&StaticAttribute {{ class: &__CLASS, static_id: {static_id} }});"#,
+pub const {pub_const_ident}: Attribute = Attribute::new_static(&StaticName {{ class: &__CLASS, static_id: {static_id} }});"#,
                 ns_name = ns_desc.name,
                 attr = def.attr,
                 pub_const_ident = def.pub_const_ident,

@@ -22,7 +22,7 @@ pub mod schema {
     pub mod html5;
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {
     HTML5,
 }

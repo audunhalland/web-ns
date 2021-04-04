@@ -20,6 +20,7 @@
 pub mod any_ns;
 pub mod attribute;
 pub mod element;
+pub mod name;
 
 ///
 /// Abstract markup language namespace.

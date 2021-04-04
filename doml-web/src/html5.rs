@@ -1,6 +1,8 @@
 //! HTML5 implementation
 
-use doml::attribute::{Attribute, AttributeClass};
+use std::hash::Hasher;
+
+use doml::attribute::Attribute;
 use doml::element::Element;
 
 use super::*;
@@ -28,13 +30,13 @@ impl doml::Namespace for Html5Namespace {
         _: &Element,
         local_name: &str,
     ) -> Result<Attribute, doml::Error> {
-        attributes::__CLASS.attribute_by_local_name(local_name, &attributes::__STATIC_ATTRS)
+        attributes::__CLASS.attribute_by_local_name(local_name, &attributes::__STATIC_NAMES)
     }
 }
 
 impl super::WebNamespace for Html5Namespace {
     fn attribute_by_property(&self, property_name: &str) -> Result<Attribute, doml::Error> {
-        attributes::__CLASS.attribute_by_property_name(property_name, &attributes::__STATIC_ATTRS)
+        attributes::__CLASS.attribute_by_property_name(property_name, &attributes::__STATIC_NAMES)
     }
 }
 
@@ -44,12 +46,21 @@ pub struct DataAttr {
     pub attr_type: AttrType,
 }
 
-impl doml::attribute::AttributeClass for DataAttr {
+impl doml::name::NameClass for DataAttr {
     fn namespace(&self) -> &'static dyn doml::Namespace {
         &HTML5_NS
     }
 
-    fn eq(&self, _: Option<usize>, other_class: &dyn AttributeClass, _: Option<usize>) -> bool {
+    fn local_name(&self, _: Option<usize>) -> &str {
+        "data"
+    }
+
+    fn equals(
+        &self,
+        _: Option<usize>,
+        other_class: &dyn doml::name::NameClass,
+        _: Option<usize>,
+    ) -> bool {
         if let Some(other) = other_class.downcast_ref::<DataAttr>() {
             self.strbuf == other.strbuf && self.buf_property_start == other.buf_property_start
         } else {
@@ -57,8 +68,10 @@ impl doml::attribute::AttributeClass for DataAttr {
         }
     }
 
-    fn local_name(&self, _: Option<usize>) -> &str {
-        "data"
+    fn dyn_hash(&self, _: Option<usize>, state: &mut dyn Hasher) {
+        state.write_u8(crate::WebNS::HTML5 as u8);
+        state.write(self.strbuf.as_bytes());
+        state.write_u8(0xff)
     }
 }
 
@@ -115,5 +128,11 @@ mod tests {
         );
         assert!(HTML5_NS.attribute_by_property("ClassName").is_err());
         assert!(HTML5_NS.attribute_by_property("foobar").is_err());
+    }
+
+    #[test]
+    fn properties_in_hashmap() {
+        // let mut hashmap = std::collections::HashMap::new();
+        // hashmap.insert(attributes::VLINK.clone(), 42);
     }
 }

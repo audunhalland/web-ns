@@ -1,5 +1,8 @@
+use std::hash::Hasher;
+
 use super::attribute::*;
 use super::element::*;
+use super::name::NameClass;
 use super::{Error, Namespace};
 
 ///
@@ -48,12 +51,12 @@ struct AnyAttribute {
     local_name: String,
 }
 
-impl AttributeClass for AnyAttribute {
+impl NameClass for AnyAttribute {
     fn namespace(&self) -> &'static dyn Namespace {
         &ANY_NS
     }
 
-    fn eq(&self, _: Option<usize>, other_class: &dyn AttributeClass, _: Option<usize>) -> bool {
+    fn equals(&self, _: Option<usize>, other_class: &dyn NameClass, _: Option<usize>) -> bool {
         if let Some(other) = other_class.downcast_ref::<AnyAttribute>() {
             self.local_name == other.local_name
         } else {
@@ -63,6 +66,11 @@ impl AttributeClass for AnyAttribute {
 
     fn local_name(&self, _: Option<usize>) -> &str {
         &self.local_name
+    }
+
+    fn dyn_hash(&self, _: Option<usize>, state: &mut dyn Hasher) {
+        state.write(self.local_name.as_bytes());
+        state.write_u8(0xff)
     }
 }
 

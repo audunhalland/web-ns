@@ -17,16 +17,11 @@ impl Attribute {
         Self(Storage::Dynamic(dynamic_attr))
     }
 
-    pub fn instance(&self) -> (&dyn AttributeClass, Option<usize>) {
-        match &self.0 {
-            Storage::Static(static_attr) => (static_attr.class, Some(static_attr.static_id)),
-            Storage::Dynamic(dynamic_attr) => (dynamic_attr.as_ref(), None),
-        }
-    }
-
+    ///
+    /// Access the originating namespace of the attribute.
+    ///
     pub fn namespace(&self) -> &'static dyn Namespace {
-        let (class, _) = self.instance();
-        class.namespace()
+        self.instance().0.namespace()
     }
 
     ///
@@ -35,6 +30,22 @@ impl Attribute {
     pub fn local_name(&self) -> &str {
         let (class, id) = self.instance();
         class.local_name(id)
+    }
+
+    ///
+    /// Access other string-based metadata about the attribute, given a key
+    ///
+    pub fn get_metadata<'a>(&'a self, key: &str) -> Option<&'a str> {
+        let (class, id) = self.instance();
+        class.metadata(id, key)
+    }
+
+    #[inline]
+    pub fn instance(&self) -> (&dyn AttributeClass, Option<usize>) {
+        match &self.0 {
+            Storage::Static(static_attr) => (static_attr.class, Some(static_attr.static_id)),
+            Storage::Dynamic(dynamic_attr) => (dynamic_attr.as_ref(), None),
+        }
     }
 }
 
@@ -53,7 +64,8 @@ pub struct StaticAttribute {
     pub static_id: usize,
 }
 
-pub trait AttributeClass: Send + Sync {
+pub trait AttributeClass: Send + Sync + std::any::Any + 'static {
     fn namespace(&self) -> &'static dyn Namespace;
     fn local_name(&self, static_id: Option<usize>) -> &str;
+    fn metadata<'a>(&'a self, static_id: Option<usize>, key: &str) -> Option<&'a str>;
 }

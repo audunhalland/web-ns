@@ -56,4 +56,8 @@ impl AttributeClass for AnyAttribute {
     fn local_name(&self, _: Option<usize>) -> &str {
         &self.local_name
     }
+
+    fn metadata<'a>(&'a self, _: Option<usize>, _: &str) -> Option<&'a str> {
+        None
+    }
 }

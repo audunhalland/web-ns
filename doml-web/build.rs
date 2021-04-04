@@ -33,7 +33,6 @@ fn codegen() -> std::io::Result<()> {
         NamespaceDesc {
             name: "HTML5",
             path: "crate::html5",
-            ns_ident: "HTML5_NS",
         },
         Path::new(&out_dir).join("codegen_static_html_attrs.rs"),
     )?;
@@ -44,7 +43,6 @@ fn codegen() -> std::io::Result<()> {
 struct NamespaceDesc {
     name: &'static str,
     path: &'static str,
-    ns_ident: &'static str,
 }
 
 fn codegen_attrs(
@@ -222,6 +220,33 @@ pub const {pub_const_ident}: Attribute = Attribute::new_static(&WEB_ATTRS[{stati
 
         writeln!(&mut file, "",)?;
     }
+
+    // Attribute class:
+    writeln!(
+        &mut file,
+        r#"
+struct StaticAttrClass;
+
+impl doml::attribute::AttributeClass for StaticAttrClass {{
+    fn namespace(&self) -> &'static dyn doml::Namespace {{
+        &super::HTML5_NS
+    }}
+
+    fn local_name(&self, static_id: Option<usize>) -> &str {{
+        WEB_ATTRS[static_id.unwrap()].name
+    }}
+
+    fn metadata<'a>(&'a self, static_id: Option<usize>, key: &str) -> Option<&'a str> {{
+        match key {{
+            crate::metadata::PROPERTY => Some(WEB_ATTRS[static_id.unwrap()].property),
+            _ => None,
+        }}
+    }}
+}}
+
+const STATIC_ATTR_CLASS: StaticAttrClass = StaticAttrClass;
+    "#
+    )?;
 
     // Attribute array:
     {

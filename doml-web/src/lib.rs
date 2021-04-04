@@ -32,28 +32,23 @@ pub enum Schema {
 
 struct Private;
 
+mod metadata {
+    pub const PROPERTY: &str = "web_property";
+}
+
+pub fn attribute_property_name(attribute: &doml::attribute::Attribute) -> Option<&str> {
+    attribute.get_metadata(metadata::PROPERTY)
+}
+
 pub mod html5 {
     //! HTML5 implementation
+
+    use std::any::Any;
 
     use super::*;
 
     pub mod attrs {
         //! Attribute definitions for HTML5
-        struct StaticAttrClass;
-
-        impl doml::attribute::AttributeClass for StaticAttrClass {
-            fn namespace(&self) -> &'static dyn doml::Namespace {
-                &super::HTML5_NS
-            }
-
-            fn local_name(&self, static_id: Option<usize>) -> &str {
-                let static_id = static_id.unwrap();
-                WEB_ATTRS[static_id].name
-            }
-        }
-
-        const STATIC_ATTR_CLASS: StaticAttrClass = StaticAttrClass;
-
         include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
     }
 
@@ -79,4 +74,36 @@ pub mod html5 {
                 .ok_or_else(|| doml::Error::InvalidAttribute)
         }
     }
+
+    struct DataAttr;
+
+    impl doml::attribute::AttributeClass for DataAttr {
+        fn namespace(&self) -> &'static dyn doml::Namespace {
+            &HTML5_NS
+        }
+
+        fn local_name(&self, _: Option<usize>) -> &str {
+            "data"
+        }
+
+        fn metadata<'a>(&'a self, _: Option<usize>, _: &str) -> Option<&'a str> {
+            None
+        }
+    }
+
+    /*
+    fn class_to_any(class: &dyn doml::attribute::AttributeClass) -> &dyn std::any::Any {
+        // &class
+        panic!()
+    }
+
+    fn test_downcast(attr: &doml::attribute::Attribute) {
+        use std::any::Any;
+        let (instance, id) = attr.instance();
+
+        // if let Some(data_attr) = instance.downcast_ref::<DataAttr>() {}
+
+        instance.type_id();
+    }
+    */
 }

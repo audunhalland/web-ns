@@ -16,6 +16,7 @@ use doml::attribute::Attribute as DomlAttribute;
 use doml::element::Element as DomlElement;
 
 mod attr;
+mod static_web_attr;
 
 mod static_unicase;
 
@@ -43,8 +44,6 @@ pub fn attribute_property_name(attribute: &doml::attribute::Attribute) -> Option
 pub mod html5 {
     //! HTML5 implementation
 
-    use std::any::Any;
-
     use super::*;
 
     pub mod attrs {
@@ -65,13 +64,10 @@ pub mod html5 {
 
         fn attribute_by_local_name(
             &self,
-            _element: &DomlElement,
+            _: &DomlElement,
             local_name: &str,
         ) -> Result<DomlAttribute, doml::Error> {
-            attrs::ATTRIBUTE_UNICASE_PHF
-                .get(&unicase::UniCase::ascii(local_name))
-                .map(|web_attr| DomlAttribute::new_static(&web_attr.static_attribute))
-                .ok_or_else(|| doml::Error::InvalidAttribute)
+            attrs::__CLASS.attribute_by_local_name(local_name, &attrs::__STATIC_ATTRS)
         }
     }
 
@@ -91,7 +87,6 @@ pub mod html5 {
         }
     }
 
-    /*
     fn class_to_any(class: &dyn doml::attribute::AttributeClass) -> &dyn std::any::Any {
         // &class
         panic!()
@@ -101,9 +96,8 @@ pub mod html5 {
         use std::any::Any;
         let (instance, id) = attr.instance();
 
-        // if let Some(data_attr) = instance.downcast_ref::<DataAttr>() {}
+        if let Some(data_attr) = instance.downcast_ref::<DataAttr>() {}
 
         instance.type_id();
     }
-    */
 }

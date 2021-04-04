@@ -1,3 +1,5 @@
+use downcast_rs::{impl_downcast, Downcast, DowncastSync};
+
 use super::Namespace;
 
 ///
@@ -64,8 +66,10 @@ pub struct StaticAttribute {
     pub static_id: usize,
 }
 
-pub trait AttributeClass: Send + Sync + std::any::Any + 'static {
+pub trait AttributeClass: Send + Sync + Downcast {
     fn namespace(&self) -> &'static dyn Namespace;
     fn local_name(&self, static_id: Option<usize>) -> &str;
     fn metadata<'a>(&'a self, static_id: Option<usize>, key: &str) -> Option<&'a str>;
 }
+
+impl_downcast!(AttributeClass);

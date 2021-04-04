@@ -198,78 +198,26 @@ fn codegen_static_web_attrs(
         &mut file,
         "use doml::attribute::{{Attribute, StaticAttribute}};"
     )?;
-    writeln!(&mut file, "use crate::attr::StaticWebAttr;")?;
+    writeln!(
+        &mut file,
+        "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrClass}};"
+    )?;
     writeln!(&mut file, "use crate::attr::attr_type::*;")?;
     writeln!(&mut file, "use crate::static_unicase::*;")?;
     writeln!(&mut file)?;
 
-    // Public interface:
-    {
-        for def in defs.iter() {
-            writeln!(
-                &mut file,
-                r#"
-/// The {ns_name} `{attr}` attribute
-pub const {pub_const_ident}: Attribute = Attribute::new_static(&WEB_ATTRS[{static_id}].static_attribute);"#,
-                ns_name = ns_desc.name,
-                attr = def.attr,
-                pub_const_ident = def.pub_const_ident,
-                static_id = def.static_id,
-            )?;
-        }
-
-        writeln!(&mut file, "",)?;
-    }
-
-    // Attribute class:
-    writeln!(
-        &mut file,
-        r#"
-struct StaticAttrClass;
-
-impl doml::attribute::AttributeClass for StaticAttrClass {{
-    fn namespace(&self) -> &'static dyn doml::Namespace {{
-        &super::HTML5_NS
-    }}
-
-    fn local_name(&self, static_id: Option<usize>) -> &str {{
-        WEB_ATTRS[static_id.unwrap()].name
-    }}
-
-    fn metadata<'a>(&'a self, static_id: Option<usize>, key: &str) -> Option<&'a str> {{
-        match key {{
-            crate::metadata::PROPERTY => Some(WEB_ATTRS[static_id.unwrap()].property),
-            _ => None,
-        }}
-    }}
-}}
-
-const STATIC_ATTR_CLASS: StaticAttrClass = StaticAttrClass;
-    "#
-    )?;
-
-    // Attribute array:
+    // StaticWebAttr array:
     {
         writeln!(
             &mut file,
-            "pub(crate) const WEB_ATTRS: [StaticWebAttr; {len}] = [",
+            "const __WEB_ATTRS: [StaticWebAttr; {len}] = [",
             len = defs.len()
         )?;
 
         for def in defs.iter() {
             writeln!(
                 &mut file,
-                r#"    StaticWebAttr {{
-        static_attribute: StaticAttribute {{
-            class: &{ns_path}::attrs::STATIC_ATTR_CLASS,
-            static_id: {static_id},
-        }},
-        name: "{attr}",
-        property: "{prop}",
-        attr_type: AttrType({flags})
-    }},"#,
-                ns_path = ns_desc.path,
-                static_id = def.static_id,
+                r#"    StaticWebAttr {{ name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
                 attr = def.attr,
                 prop = def.prop,
                 flags = def.flags
@@ -279,58 +227,109 @@ const STATIC_ATTR_CLASS: StaticAttrClass = StaticAttrClass;
         writeln!(&mut file, "];\n",)?;
     }
 
-    // Attribute name map:
+    // Attribute class:
     {
-        let def_keys: Vec<_> = defs
-            .iter()
-            .map(|def| {
-                (
-                    def,
-                    PhfKeyRef {
-                        key: StaticUniCase::new(def.attr),
-                        ref_expr: format!("StaticUniCase::new(WEB_ATTRS[{}].name)", def.static_id),
-                    },
-                )
-            })
-            .collect();
-
-        let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> = phf_codegen::Map::new();
-        for (def, key) in def_keys {
-            map_codegen.entry(key, &format!("&WEB_ATTRS[{}]", def.static_id));
-        }
-
         writeln!(
             &mut file,
-            "pub(crate) static ATTRIBUTE_UNICASE_PHF: phf::Map<StaticUniCase, &'static StaticWebAttr> = \n{};\n",
-            map_codegen.build()
+            r#"
+pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
+    namespace: &super::HTML5_NS,
+    web_attrs: &__WEB_ATTRS,"#
         )?;
+
+        // Attribute name map:
+        {
+            let def_keys: Vec<_> = defs
+                .iter()
+                .map(|def| {
+                    (
+                        def,
+                        PhfKeyRef {
+                            key: StaticUniCase::new(def.attr),
+                            ref_expr: format!(
+                                "StaticUniCase::new(__WEB_ATTRS[{}].name)",
+                                def.static_id
+                            ),
+                        },
+                    )
+                })
+                .collect();
+
+            let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> =
+                phf_codegen::Map::new();
+            for (def, key) in def_keys {
+                map_codegen.entry(key, &format!("{}", def.static_id));
+            }
+
+            writeln!(
+                &mut file,
+                "    attribute_unicase_map: {},",
+                map_codegen.build()
+            )?;
+        }
+
+        // Prop name map:
+        {
+            let def_keys: Vec<_> = defs
+                .iter()
+                .map(|def| {
+                    (
+                        def,
+                        PhfKeyRef {
+                            key: def.prop,
+                            ref_expr: format!("__WEB_ATTRS[{}].property", def.static_id),
+                        },
+                    )
+                })
+                .collect();
+
+            let mut map_codegen: phf_codegen::Map<PhfKeyRef<&'static str>> =
+                phf_codegen::Map::new();
+            for (def, key) in def_keys {
+                map_codegen.entry(key, &format!("{}", def.static_id));
+            }
+
+            writeln!(&mut file, "    property_map: {},\n", map_codegen.build())?;
+        }
+
+        writeln!(&mut file, "}};\n",)?;
     }
 
-    // Property map:
+    // StaticAttr array:
     {
-        let def_keys: Vec<_> = defs
-            .iter()
-            .map(|def| {
-                (
-                    def,
-                    PhfKeyRef {
-                        key: def.prop,
-                        ref_expr: format!("WEB_ATTRS[{}].property", def.static_id),
-                    },
-                )
-            })
-            .collect();
-
-        let mut map_codegen: phf_codegen::Map<PhfKeyRef<&'static str>> = phf_codegen::Map::new();
-        for (def, key) in def_keys {
-            map_codegen.entry(key, &format!("&WEB_ATTRS[{}]", def.static_id));
-        }
-
         writeln!(
             &mut file,
-            "pub(crate) static PROPERTY_PHF: phf::Map<&'static str, &'static StaticWebAttr> = \n{};\n",
-            map_codegen.build()
+            "pub(crate) const __STATIC_ATTRS: [StaticAttribute; {len}] = [",
+            len = defs.len()
         )?;
+
+        for def in defs.iter() {
+            writeln!(
+                &mut file,
+                r#"    StaticAttribute {{ class: &__CLASS, static_id: {static_id} }},"#,
+                static_id = def.static_id
+            )?;
+        }
+
+        writeln!(&mut file, "];\n",)?;
+    }
+
+    // Public interface:
+    {
+        for def in defs.iter() {
+            writeln!(
+                &mut file,
+                r#"
+/// The {ns_name} `{attr}` attribute
+pub const {pub_const_ident}: Attribute = Attribute::new_static(&StaticAttribute {{ class: &__CLASS, static_id: {static_id} }});"#,
+                ns_name = ns_desc.name,
+                attr = def.attr,
+                pub_const_ident = def.pub_const_ident,
+                static_id = def.static_id,
+            )?;
+        }
+
+        writeln!(&mut file, "",)?;
     }
 
     Ok(())

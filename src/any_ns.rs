@@ -53,11 +53,31 @@ impl AttributeClass for AnyAttribute {
         &ANY_NS
     }
 
+    fn eq(&self, _: Option<usize>, other_class: &dyn AttributeClass, _: Option<usize>) -> bool {
+        if let Some(other) = other_class.downcast_ref::<AnyAttribute>() {
+            self.local_name == other.local_name
+        } else {
+            false
+        }
+    }
+
     fn local_name(&self, _: Option<usize>) -> &str {
         &self.local_name
     }
+}
 
-    fn metadata<'a>(&'a self, _: Option<usize>, _: &str) -> Option<&'a str> {
-        None
+#[cfg(test)]
+mod tests {
+    use crate::Namespace;
+
+    use super::ANY_NS;
+
+    #[test]
+    fn attribute_eq() {
+        let elem = ANY_NS.element_by_local_name("foo").unwrap();
+        let a = ANY_NS.attribute_by_local_name(&elem, "bar").unwrap();
+        let b = ANY_NS.attribute_by_local_name(&elem, "bar").unwrap();
+
+        assert_eq!(a, b);
     }
 }

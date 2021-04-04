@@ -233,8 +233,10 @@ fn codegen_static_web_attrs(
             &mut file,
             r#"
 pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
-    namespace: &super::HTML5_NS,
-    web_attrs: &__WEB_ATTRS,"#
+    web_ns: crate::WebNS::{name},
+    namespace: &super::{name}_NS,
+    web_attrs: &__WEB_ATTRS,"#,
+            name = ns_desc.name,
         )?;
 
         // Attribute name map:

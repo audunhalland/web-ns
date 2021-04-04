@@ -1,4 +1,4 @@
-use doml::attribute::{Attribute, StaticAttribute};
+use doml::attribute::{Attribute, AttributeClass, StaticAttribute};
 
 use crate::attr::attr_type::AttrType;
 use crate::static_unicase::StaticUniCase;
@@ -10,6 +10,7 @@ pub(crate) struct StaticWebAttr {
 }
 
 pub(crate) struct StaticWebAttrClass {
+    pub web_ns: crate::WebNS,
     pub namespace: &'static dyn doml::Namespace,
     pub web_attrs: &'static [StaticWebAttr],
     pub attribute_unicase_map: phf::Map<StaticUniCase, usize>,
@@ -27,21 +28,42 @@ impl StaticWebAttrClass {
             .map(|static_id| Attribute::new_static(&static_attrs[*static_id]))
             .ok_or_else(|| doml::Error::InvalidAttribute)
     }
+
+    pub fn attribute_by_property_name(
+        &self,
+        property_name: &str,
+        static_attrs: &'static [StaticAttribute],
+    ) -> Result<Attribute, doml::Error> {
+        self.property_map
+            .get(property_name)
+            .map(|static_id| Attribute::new_static(&static_attrs[*static_id]))
+            .ok_or_else(|| doml::Error::InvalidAttribute)
+    }
+
+    pub fn property_name(&self, static_id: usize) -> &str {
+        self.web_attrs[static_id].property
+    }
 }
 
-impl doml::attribute::AttributeClass for StaticWebAttrClass {
+impl AttributeClass for StaticWebAttrClass {
     fn namespace(&self) -> &'static dyn doml::Namespace {
         self.namespace
     }
 
-    fn local_name(&self, static_id: Option<usize>) -> &str {
-        self.web_attrs[static_id.unwrap()].name
+    fn eq(
+        &self,
+        self_id: Option<usize>,
+        other_class: &dyn AttributeClass,
+        other_id: Option<usize>,
+    ) -> bool {
+        if let Some(other) = other_class.downcast_ref::<StaticWebAttrClass>() {
+            self.web_ns == other.web_ns && self_id == other_id
+        } else {
+            false
+        }
     }
 
-    fn metadata<'a>(&'a self, static_id: Option<usize>, key: &str) -> Option<&'a str> {
-        match key {
-            crate::metadata::PROPERTY => Some(self.web_attrs[static_id.unwrap()].property),
-            _ => None,
-        }
+    fn local_name(&self, static_id: Option<usize>) -> &str {
+        self.web_attrs[static_id.unwrap()].name
     }
 }

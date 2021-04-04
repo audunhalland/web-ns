@@ -24,7 +24,7 @@ pub mod element;
 ///
 /// Abstract markup language namespace.
 ///
-pub trait Namespace: Send + Sync + std::any::Any {
+pub trait Namespace: Send + Sync {
     ///
     /// Look up an element by its local name within the namespace.
     ///

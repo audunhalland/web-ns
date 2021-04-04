@@ -1,4 +1,4 @@
-use downcast_rs::{impl_downcast, Downcast, DowncastSync};
+use downcast_rs::{impl_downcast, Downcast};
 
 use super::Namespace;
 
@@ -34,20 +34,26 @@ impl Attribute {
         class.local_name(id)
     }
 
-    ///
-    /// Access other string-based metadata about the attribute, given a key
-    ///
-    pub fn get_metadata<'a>(&'a self, key: &str) -> Option<&'a str> {
-        let (class, id) = self.instance();
-        class.metadata(id, key)
-    }
-
     #[inline]
     pub fn instance(&self) -> (&dyn AttributeClass, Option<usize>) {
         match &self.0 {
             Storage::Static(static_attr) => (static_attr.class, Some(static_attr.static_id)),
             Storage::Dynamic(dynamic_attr) => (dynamic_attr.as_ref(), None),
         }
+    }
+}
+
+impl std::fmt::Debug for Attribute {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.local_name())
+    }
+}
+
+impl std::cmp::PartialEq<Attribute> for Attribute {
+    fn eq(&self, rhs: &Attribute) -> bool {
+        let (class_a, id_a) = self.instance();
+        let (class_b, id_b) = rhs.instance();
+        class_a.eq(id_a, class_b, id_b)
     }
 }
 
@@ -66,10 +72,21 @@ pub struct StaticAttribute {
     pub static_id: usize,
 }
 
+impl PartialEq<StaticAttribute> for StaticAttribute {
+    fn eq(&self, rhs: &StaticAttribute) -> bool {
+        std::ptr::eq(self.class, rhs.class) && self.static_id == rhs.static_id
+    }
+}
+
 pub trait AttributeClass: Send + Sync + Downcast {
     fn namespace(&self) -> &'static dyn Namespace;
+    fn eq(
+        &self,
+        static_id: Option<usize>,
+        other_class: &dyn AttributeClass,
+        other_static_id: Option<usize>,
+    ) -> bool;
     fn local_name(&self, static_id: Option<usize>) -> &str;
-    fn metadata<'a>(&'a self, static_id: Option<usize>, key: &str) -> Option<&'a str>;
 }
 
 impl_downcast!(AttributeClass);

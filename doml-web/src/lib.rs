@@ -12,16 +12,19 @@
 
 #![forbid(unsafe_code)]
 
-use doml::attribute::Attribute as DomlAttribute;
-use doml::element::Element as DomlElement;
+pub mod html5;
 
 mod attr;
-mod static_web_attr;
-
 mod static_unicase;
+mod static_web_attr;
 
 pub mod schema {
     pub mod html5;
+}
+
+#[derive(Eq, PartialEq)]
+enum WebNS {
+    HTML5,
 }
 
 ///
@@ -33,71 +36,34 @@ pub enum Schema {
 
 struct Private;
 
-mod metadata {
-    pub const PROPERTY: &str = "web_property";
+pub trait WebNamespace: doml::Namespace {
+    fn attribute_by_property(
+        &self,
+        property_name: &str,
+    ) -> Result<doml::attribute::Attribute, doml::Error>;
 }
 
+///
+/// Access the JS DOM property name of an attribute.
+///
+/// # Example
+/// ```
+/// assert_eq!(attribute_property_name(&crate::html5::attributes::CLASS), Some("className"));
+/// ```
+///
 pub fn attribute_property_name(attribute: &doml::attribute::Attribute) -> Option<&str> {
-    attribute.get_metadata(metadata::PROPERTY)
-}
+    let (class, id) = attribute.instance();
 
-pub mod html5 {
-    //! HTML5 implementation
-
-    use super::*;
-
-    pub mod attrs {
-        //! Attribute definitions for HTML5
-        include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
-    }
-
-    /// A [doml::Namespace] implementation for HTML5.
-    pub struct Html5Namespace(Private);
-
-    /// The global [Html5Namespace] instance.
-    pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
-
-    impl doml::Namespace for Html5Namespace {
-        fn element_by_local_name(&self, _local_name: &str) -> Result<DomlElement, doml::Error> {
-            todo!()
+    match id {
+        Some(static_id) => {
+            if let Some(static_web_attr_class) =
+                class.downcast_ref::<static_web_attr::StaticWebAttrClass>()
+            {
+                Some(static_web_attr_class.property_name(static_id))
+            } else {
+                None
+            }
         }
-
-        fn attribute_by_local_name(
-            &self,
-            _: &DomlElement,
-            local_name: &str,
-        ) -> Result<DomlAttribute, doml::Error> {
-            attrs::__CLASS.attribute_by_local_name(local_name, &attrs::__STATIC_ATTRS)
-        }
-    }
-
-    struct DataAttr;
-
-    impl doml::attribute::AttributeClass for DataAttr {
-        fn namespace(&self) -> &'static dyn doml::Namespace {
-            &HTML5_NS
-        }
-
-        fn local_name(&self, _: Option<usize>) -> &str {
-            "data"
-        }
-
-        fn metadata<'a>(&'a self, _: Option<usize>, _: &str) -> Option<&'a str> {
-            None
-        }
-    }
-
-    fn class_to_any(class: &dyn doml::attribute::AttributeClass) -> &dyn std::any::Any {
-        // &class
-        panic!()
-    }
-
-    fn test_downcast(attr: &doml::attribute::Attribute) {
-        use std::any::Any;
-        let (instance, id) = attr.instance();
-
-        if let Some(data_attr) = instance.downcast_ref::<DataAttr>() {}
-
-        instance.type_id();
+        None => None,
     }
 }

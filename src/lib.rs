@@ -57,16 +57,6 @@ pub trait Namespace: Send + Sync + std::any::Any {
         element: &element::Element,
         local_name: &str,
     ) -> Result<attribute::Attribute, Error>;
-
-    ///
-    /// Get the local name of a static
-    ///
-    fn get_static_local_name(&self, input: Static) -> &'static str;
-}
-
-pub enum Static {
-    Element(usize),
-    Attribute(usize),
 }
 
 #[derive(Debug)]

@@ -1,6 +1,6 @@
 use super::attribute::*;
 use super::element::*;
-use super::{Error, Namespace, Static};
+use super::{Error, Namespace};
 
 ///
 /// A completely untyped namespace, which can be used for representing any kind of markup or DOM,
@@ -28,22 +28,18 @@ impl super::Namespace for AnyNamespace {
             local_name: local_name.to_string(),
         })))
     }
-
-    fn get_static_local_name(&self, _: Static) -> &'static str {
-        panic!("ANY_NS did not export any static elements")
-    }
 }
 
 struct AnyElement {
     local_name: String,
 }
 
-impl DynamicElement for AnyElement {
+impl ElementClass for AnyElement {
     fn namespace(&self) -> &'static dyn Namespace {
         &ANY_NS
     }
 
-    fn local_name(&self) -> &str {
+    fn local_name(&self, _: Option<usize>) -> &str {
         &self.local_name
     }
 }
@@ -52,12 +48,12 @@ struct AnyAttribute {
     local_name: String,
 }
 
-impl DynamicAttribute for AnyAttribute {
+impl AttributeClass for AnyAttribute {
     fn namespace(&self) -> &'static dyn Namespace {
         &ANY_NS
     }
 
-    fn local_name(&self) -> &str {
+    fn local_name(&self, _: Option<usize>) -> &str {
         &self.local_name
     }
 }

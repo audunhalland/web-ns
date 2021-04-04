@@ -1,3 +1,15 @@
+//! Web namespaces.
+//!
+//! # Usage
+//!
+//! ```
+//! use doml::*;
+//! use doml_web::html5::HTML5_NS;
+//!
+//! let element = HTML5_NS.element_by_local_name("div").unwrap();
+//! ```
+//!
+
 #![forbid(unsafe_code)]
 
 use doml::attribute::Attribute as DomlAttribute;
@@ -27,6 +39,20 @@ pub mod html5 {
 
     pub mod attrs {
         //! Attribute definitions for HTML5
+        struct StaticAttrClass;
+
+        impl doml::attribute::AttributeClass for StaticAttrClass {
+            fn namespace(&self) -> &'static dyn doml::Namespace {
+                &super::HTML5_NS
+            }
+
+            fn local_name(&self, static_id: Option<usize>) -> &str {
+                let static_id = static_id.unwrap();
+                WEB_ATTRS[static_id].name
+            }
+        }
+
+        const STATIC_ATTR_CLASS: StaticAttrClass = StaticAttrClass;
 
         include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
     }
@@ -38,7 +64,7 @@ pub mod html5 {
     pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
     impl doml::Namespace for Html5Namespace {
-        fn element_by_local_name(&self, local_name: &str) -> Result<DomlElement, doml::Error> {
+        fn element_by_local_name(&self, _local_name: &str) -> Result<DomlElement, doml::Error> {
             todo!()
         }
 
@@ -51,13 +77,6 @@ pub mod html5 {
                 .get(&unicase::UniCase::ascii(local_name))
                 .map(|web_attr| DomlAttribute::new_static(&web_attr.static_attribute))
                 .ok_or_else(|| doml::Error::InvalidAttribute)
-        }
-
-        fn get_static_local_name(&self, input: doml::Static) -> &'static str {
-            match input {
-                doml::Static::Element(_static_id) => todo!("no support for elements yet"),
-                doml::Static::Attribute(static_id) => attrs::WEB_ATTRS[static_id].name,
-            }
         }
     }
 }

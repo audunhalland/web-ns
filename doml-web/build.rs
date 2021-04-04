@@ -30,12 +30,21 @@ fn codegen() -> std::io::Result<()> {
 
     codegen_static_web_attrs(
         html5_defs::attrs::DEFS,
-        "HTML5",
-        "crate::html5::HTML5_NS",
+        NamespaceDesc {
+            name: "HTML5",
+            path: "crate::html5",
+            ns_ident: "HTML5_NS",
+        },
         Path::new(&out_dir).join("codegen_static_html_attrs.rs"),
     )?;
 
     Ok(())
+}
+
+struct NamespaceDesc {
+    name: &'static str,
+    path: &'static str,
+    ns_ident: &'static str,
 }
 
 fn codegen_attrs(
@@ -162,8 +171,7 @@ const {const_ident}: InternalAttr = InternalAttr {{
 
 fn codegen_static_web_attrs(
     defs: &[(&'static str, &'static str, u32)],
-    namespace_name: &'static str,
-    namespace_ident: &'static str,
+    ns_desc: NamespaceDesc,
     out_path: std::path::PathBuf,
 ) -> std::io::Result<()> {
     let mut file = BufWriter::new(File::create(&out_path)?);
@@ -203,9 +211,9 @@ fn codegen_static_web_attrs(
             writeln!(
                 &mut file,
                 r#"
-/// The {namespace_name} `{attr}` attribute
+/// The {ns_name} `{attr}` attribute
 pub const {pub_const_ident}: Attribute = Attribute::new_static(&WEB_ATTRS[{static_id}].static_attribute);"#,
-                namespace_name = namespace_name,
+                ns_name = ns_desc.name,
                 attr = def.attr,
                 pub_const_ident = def.pub_const_ident,
                 static_id = def.static_id,
@@ -228,14 +236,14 @@ pub const {pub_const_ident}: Attribute = Attribute::new_static(&WEB_ATTRS[{stati
                 &mut file,
                 r#"    StaticWebAttr {{
         static_attribute: StaticAttribute {{
-            namespace: &{namespace_ident},
+            class: &{ns_path}::attrs::STATIC_ATTR_CLASS,
             static_id: {static_id},
         }},
         name: "{attr}",
         property: "{prop}",
         attr_type: AttrType({flags})
     }},"#,
-                namespace_ident = namespace_ident,
+                ns_path = ns_desc.path,
                 static_id = def.static_id,
                 attr = def.attr,
                 prop = def.prop,

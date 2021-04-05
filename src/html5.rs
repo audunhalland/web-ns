@@ -57,7 +57,7 @@ impl super::WebNamespace for Html5Namespace {
     }
 }
 
-mod data_attr {
+pub(crate) mod data_attr {
     use super::*;
     use dyn_symbol::namespace::Dynamic;
 
@@ -69,8 +69,12 @@ mod data_attr {
     }
 
     impl DataAttr {
-        fn attr_name(&self) -> &str {
+        pub fn attr_name(&self) -> &str {
             &self.strbuf[..self.buf_property_start]
+        }
+
+        pub fn property_name(&self) -> &str {
+            &self.strbuf[self.buf_property_start..]
         }
     }
 

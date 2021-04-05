@@ -37,8 +37,8 @@ impl<const NS: u8> StaticWebAttrNS<NS> {
             .ok_or_else(|| Error::InvalidAttribute)
     }
 
-    pub fn property_name(&self, static_id: usize) -> &str {
-        self.web_attrs[static_id].property
+    pub fn property_name(&self, static_id: u32) -> &str {
+        self.web_attrs[static_id as usize].property
     }
 }
 

@@ -19,15 +19,15 @@ mod new;
 mod static_unicase;
 mod static_web_attr;
 
-use new::{Attribute, Element};
-
 pub mod schema {
     pub mod html5;
 }
 
+use new::{Attribute, Element};
+
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {
-    HTML5,
+    HTML5 = 0,
 }
 
 impl WebNS {
@@ -70,7 +70,22 @@ pub enum Error {
 /// ```
 ///
 pub fn attribute_property_name(attribute: &Attribute) -> Option<&str> {
-    todo!()
+    use html5::data_attr::DataAttr;
+    use static_web_attr::StaticWebAttrNS;
+
+    if let Some((html5_ns, id)) = attribute
+        .0
+        .downcast_static::<StaticWebAttrNS</* HTML5 = */ 0>>()
+    {
+        return Some(html5_ns.property_name(id));
+    }
+
+    if let Some(data_attr) = attribute.0.downcast_dyn::<DataAttr>() {
+        return Some(data_attr.property_name());
+    }
+
+    return None;
+
     /*
     let (class, id) = attribute.name().instance();
 

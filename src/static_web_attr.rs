@@ -1,11 +1,12 @@
 use dyn_symbol::Symbol;
 
-use crate::Error;
+use crate::{Error, WebNS};
 
 use crate::attr::attr_type::AttrType;
 use crate::static_unicase::StaticUniCase;
 
 pub(crate) struct StaticWebAttr {
+    pub web_ns: WebNS,
     pub name: &'static str,
     pub property: &'static str,
     pub attr_type: AttrType,

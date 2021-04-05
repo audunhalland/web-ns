@@ -32,13 +32,6 @@ impl WebNS {
     }
 }
 
-///
-/// A specific document Schema used on the web.
-///
-pub enum Schema {
-    Html5,
-}
-
 struct Private;
 
 pub trait WebNamespace {

@@ -10,12 +10,6 @@ pub mod attr_type;
 
 mod value;
 
-use crate::Error;
-use crate::Schema;
-
-use attr_impl::*;
-use attr_type::*;
-
 ///
 /// A typed attribute value.
 ///

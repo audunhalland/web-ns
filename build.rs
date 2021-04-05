@@ -70,7 +70,7 @@ fn codegen_static_web_attrs(
         .collect();
 
     writeln!(&mut file, "use dyn_symbol::Symbol;")?;
-    // writeln!(&mut file, "use doml::name::StaticName;")?;
+    writeln!(&mut file, "use crate::WebNS;")?;
     writeln!(
         &mut file,
         "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrNS}};"
@@ -90,7 +90,8 @@ fn codegen_static_web_attrs(
         for def in defs.iter() {
             writeln!(
                 &mut file,
-                r#"    StaticWebAttr {{ name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
+                r#"    StaticWebAttr {{ web_ns: WebNS::{ns_name}, name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
+                ns_name = ns_desc.name,
                 attr = def.attr,
                 prop = def.prop,
                 flags = def.flags

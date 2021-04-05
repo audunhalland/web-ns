@@ -11,6 +11,7 @@ pub mod attr_type;
 mod value;
 
 use crate::schema;
+use crate::Error;
 use crate::Schema;
 
 use attr_impl::*;
@@ -76,7 +77,7 @@ impl Attribute {
     /// assert_eq!(value, AttributeValue::Multi(vec!["foo".to_string(), "bar".to_string()]));
     /// ```
     ///
-    pub fn parse_attribute_value<S>(&self, value: Option<S>) -> Result<AttributeValue, doml::Error>
+    pub fn parse_attribute_value<S>(&self, value: Option<S>) -> Result<AttributeValue, Error>
     where
         S: Into<String> + AsRef<str>,
     {
@@ -178,7 +179,7 @@ pub enum SerializedAttributeValue {
 /// assert_eq!(attr.property(), "dataFoobar");
 /// ```
 ///
-pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, doml::Error> {
+pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, Error> {
     match schema {
         Schema::Html5 => match schema::html5::attr::internal_attr_by_name(attribute) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
@@ -198,7 +199,7 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, dom
                         attr_type: AttrType(flags::STRING),
                     }))))
                 } else {
-                    Err(doml::Error::InvalidAttribute)
+                    Err(Error::InvalidAttribute)
                 }
             }
         },
@@ -218,11 +219,11 @@ pub fn parse_attribute(attribute: &str, schema: Schema) -> Result<Attribute, dom
 /// assert_eq!(attr.attribute(), "class");
 /// ```
 ///
-pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, doml::Error> {
+pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, Error> {
     match schema {
         Schema::Html5 => match schema::html5::attr::internal_attr_by_property(property) {
             Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
-            None => Err(doml::Error::InvalidAttribute),
+            None => Err(Error::InvalidAttribute),
         },
     }
 }

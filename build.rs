@@ -194,11 +194,12 @@ fn codegen_static_web_attrs(
         })
         .collect();
 
-    writeln!(&mut file, "use doml::attribute::Attribute;")?;
-    writeln!(&mut file, "use doml::name::StaticName;")?;
+    writeln!(&mut file, "use dyn_symbol::Symbol;")?;
+    writeln!(&mut file, "use crate::new::Attribute;")?;
+    // writeln!(&mut file, "use doml::name::StaticName;")?;
     writeln!(
         &mut file,
-        "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrClass}};"
+        "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrNS}};"
     )?;
     writeln!(&mut file, "use crate::attr::attr_type::*;")?;
     writeln!(&mut file, "use crate::static_unicase::*;")?;
@@ -230,9 +231,8 @@ fn codegen_static_web_attrs(
         writeln!(
             &mut file,
             r#"
-pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
+pub(crate) const __ATTR_NS: StaticWebAttrNS<0> = StaticWebAttrNS {{
     web_ns: crate::WebNS::{name},
-    namespace: &super::{name}_NS,
     web_attrs: &__WEB_ATTRS,"#,
             name = ns_desc.name,
         )?;
@@ -296,6 +296,7 @@ pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
     }
 
     // Static name array:
+    /*
     {
         writeln!(
             &mut file,
@@ -313,6 +314,7 @@ pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
 
         writeln!(&mut file, "];\n",)?;
     }
+    */
 
     // Public interface:
     {
@@ -321,7 +323,7 @@ pub(crate) const __CLASS: StaticWebAttrClass = StaticWebAttrClass {{
                 &mut file,
                 r#"
 /// The {ns_name} `{attr}` attribute
-pub const {pub_const_ident}: Attribute = Attribute::new_static(&StaticName {{ class: &__CLASS, static_id: {static_id} }});"#,
+pub const {pub_const_ident}: Attribute = Attribute(Symbol::Static(&__ATTR_NS, {static_id}));"#,
                 ns_name = ns_desc.name,
                 attr = def.attr,
                 pub_const_ident = def.pub_const_ident,

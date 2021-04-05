@@ -2,8 +2,8 @@
 
 use std::hash::Hasher;
 
-use doml::attribute::Attribute;
-use doml::element::Element;
+use crate::new::{Attribute, Element};
+use crate::Error;
 
 use super::*;
 
@@ -20,23 +20,17 @@ pub struct Html5Namespace(Private);
 /// The global [Html5Namespace] instance.
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
-impl doml::Namespace for Html5Namespace {
-    fn element_by_local_name(&self, _local_name: &str) -> Result<Element, doml::Error> {
+impl super::WebNamespace for Html5Namespace {
+    fn element_by_local_name(&self, _local_name: &str) -> Result<Element, Error> {
         todo!()
     }
 
-    fn attribute_by_local_name(
-        &self,
-        _: &Element,
-        local_name: &str,
-    ) -> Result<Attribute, doml::Error> {
-        attributes::__CLASS.attribute_by_local_name(local_name, &attributes::__STATIC_NAMES)
+    fn attribute_by_local_name(&self, _: &Element, local_name: &str) -> Result<Attribute, Error> {
+        attributes::__ATTR_NS.attribute_by_local_name(local_name)
     }
-}
 
-impl super::WebNamespace for Html5Namespace {
-    fn attribute_by_property(&self, property_name: &str) -> Result<Attribute, doml::Error> {
-        attributes::__CLASS.attribute_by_property_name(property_name, &attributes::__STATIC_NAMES)
+    fn attribute_by_property(&self, property_name: &str) -> Result<Attribute, Error> {
+        attributes::__ATTR_NS.attribute_by_property_name(property_name)
     }
 }
 
@@ -46,40 +40,10 @@ pub struct DataAttr {
     pub attr_type: AttrType,
 }
 
-impl doml::name::NameClass for DataAttr {
-    fn namespace(&self) -> &'static dyn doml::Namespace {
-        &HTML5_NS
-    }
-
-    fn local_name(&self, _: Option<usize>) -> &str {
-        "data"
-    }
-
-    fn equals(
-        &self,
-        _: Option<usize>,
-        other_class: &dyn doml::name::NameClass,
-        _: Option<usize>,
-    ) -> bool {
-        if let Some(other) = other_class.downcast_ref::<DataAttr>() {
-            self.strbuf == other.strbuf && self.buf_property_start == other.buf_property_start
-        } else {
-            false
-        }
-    }
-
-    fn dyn_hash(&self, _: Option<usize>, state: &mut dyn Hasher) {
-        state.write_u8(crate::WebNS::HTML5 as u8);
-        state.write(self.strbuf.as_bytes());
-        state.write_u8(0xff)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::WebNamespace;
     use super::*;
-    use doml::Namespace;
 
     #[test]
     fn html5_static_attribute_to_property_name() {
@@ -89,6 +53,8 @@ mod tests {
     }
 
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
+        todo!();
+        /*
         let element = doml::any_ns::ANY_NS.element_by_local_name("test").unwrap();
 
         if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
@@ -98,6 +64,7 @@ mod tests {
         } else {
             assert!(expected.is_none());
         }
+        */
     }
 
     #[test]

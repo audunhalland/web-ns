@@ -1,3 +1,5 @@
+use crate::Error;
+
 use super::{AttributeValue, SerializedAttributeValue};
 
 use super::attr_type::flags::*;
@@ -7,10 +9,7 @@ use super::attr_type::*;
 /// Parse an Option of a string-based attribute value.
 /// None represents an attribute without a value, e.g. `<foo bar />`
 ///
-pub fn parse_attribute<S>(
-    value: Option<S>,
-    attr_type: AttrType,
-) -> Result<AttributeValue, doml::Error>
+pub fn parse_attribute<S>(value: Option<S>, attr_type: AttrType) -> Result<AttributeValue, Error>
 where
     S: Into<String> + AsRef<str>,
 {
@@ -30,7 +29,7 @@ where
             if attr_type.is_bool() {
                 Ok(AttributeValue::True)
             } else {
-                Err(doml::Error::InvalidAttributeValue)
+                Err(Error::InvalidAttributeValue)
             }
         }
         Some(string) => match string.as_ref() {
@@ -40,21 +39,21 @@ where
                 } else if attr_type.any(EMPTY_STRING | STRING) {
                     Ok(AttributeValue::String(String::new()))
                 } else {
-                    Err(doml::Error::InvalidAttributeValue)
+                    Err(Error::InvalidAttributeValue)
                 }
             }
             "true" => {
                 if attr_type.any(BOOL | TRUE | STRING | NUMBER) {
                     Ok(AttributeValue::True)
                 } else {
-                    Err(doml::Error::InvalidAttributeValue)
+                    Err(Error::InvalidAttributeValue)
                 }
             }
             "false" => {
                 if attr_type.any(BOOL | TRUE | STRING | NUMBER) {
                     Ok(AttributeValue::False)
                 } else {
-                    Err(doml::Error::InvalidAttributeValue)
+                    Err(Error::InvalidAttributeValue)
                 }
             }
             _ => {
@@ -71,7 +70,7 @@ where
                 } else if attr_type.any(STRING | NUMBER) {
                     Ok(AttributeValue::String(string.into()))
                 } else {
-                    Err(doml::Error::InvalidAttributeValue)
+                    Err(Error::InvalidAttributeValue)
                 }
             }
         },

@@ -1,68 +1,90 @@
+//! Web namespaces.
 //!
-//! `doml` is a utility crate for modelling typed/validated Document Object Models and corresponding markup languages.
+//! # Usage
 //!
-//! It does not model any DOM itself, virtual nor concrete, but provides data types
-//! to represent the primitive building blocks of such data structures efficiently in memory:
+//! ```
+//! use doml::*;
+//! use doml_web::html5::HTML5_NS;
 //!
-//! * [element::Element]
-//! * [attribute::Attribute]
+//! let element = HTML5_NS.element_by_local_name("div").unwrap();
+//! ```
 //!
-//! `doml` exports the [Namespace] trait, which can be implemented for a specific
-//! DOM model/schema (e.g. the HTML spec, or some XML schema). Namespaces may defined statically,
-//! and the returned types may be configured to use a minimal amount of memory with no allocation
-//! for statically known elements or attributes.
-//!
-//! Elements and attributes refer back to their originating namespace, so a document may be modelled
-//! using a mix of namespaces.
-//!
+
 #![forbid(unsafe_code)]
 
-pub mod any_ns;
-pub mod attribute;
-pub mod element;
-pub mod name;
+pub mod html5;
+
+mod attr;
+mod new;
+mod static_unicase;
+mod static_web_attr;
+
+use new::{Attribute, Element};
+
+pub mod schema {
+    pub mod html5;
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum WebNS {
+    HTML5,
+}
+
+impl WebNS {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::HTML5 => "html5",
+        }
+    }
+}
 
 ///
-/// Abstract markup language namespace.
+/// A specific document Schema used on the web.
 ///
-pub trait Namespace: Send + Sync {
-    ///
-    /// Look up an element by its local name within the namespace.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use doml::Namespace;
-    /// use doml::any_ns::ANY_NS;
-    ///
-    /// let element = ANY_NS.element_by_local_name("foo").unwrap();
-    /// assert_eq!(element.local_name(), "foo");
-    /// ```
-    fn element_by_local_name(&self, local_name: &str) -> Result<element::Element, Error>;
+pub enum Schema {
+    Html5,
+}
 
-    ///
-    /// Look up an attribute by its local name within the namespace, given its containing element.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use doml::Namespace;
-    /// use doml::any_ns::ANY_NS;
-    ///
-    /// let element = ANY_NS.element_by_local_name("foo").unwrap();
-    /// let attribute = ANY_NS.attribute_by_local_name(&element, "bar").unwrap();
-    /// assert_eq!(attribute.local_name(), "bar");
-    /// ```
-    fn attribute_by_local_name(
-        &self,
-        element: &element::Element,
-        local_name: &str,
-    ) -> Result<attribute::Attribute, Error>;
+struct Private;
+
+pub trait WebNamespace {
+    fn element_by_local_name(&self, _local_name: &str) -> Result<Element, Error>;
+
+    fn attribute_by_local_name(&self, _: &Element, local_name: &str) -> Result<Attribute, Error>;
+
+    fn attribute_by_property(&self, property_name: &str) -> Result<Attribute, Error>;
 }
 
 #[derive(Debug)]
 pub enum Error {
-    InvalidNamespace,
     InvalidAttribute,
     InvalidAttributeValue,
+}
+
+///
+/// Access the JS DOM property name of an attribute.
+///
+/// # Example
+/// ```
+/// assert_eq!(attribute_property_name(&crate::html5::attributes::CLASS), Some("className"));
+/// ```
+///
+pub fn attribute_property_name(attribute: &Attribute) -> Option<&str> {
+    todo!()
+    /*
+    let (class, id) = attribute.name().instance();
+
+    match id {
+        Some(static_id) => {
+            if let Some(static_web_attr_class) =
+                class.downcast_ref::<static_web_attr::StaticWebAttrNS>()
+            {
+                Some(static_web_attr_class.property_name(static_id))
+            } else {
+                None
+            }
+        }
+        None => None,
+    }
+    */
 }

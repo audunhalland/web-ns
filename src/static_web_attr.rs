@@ -4,6 +4,7 @@ use crate::{Error, WebNS};
 
 use crate::attr::attr_type::AttrType;
 use crate::static_unicase::StaticUniCase;
+use crate::symbols::__ATTR_SYMBOL_NS;
 
 pub(crate) struct StaticWebAttr {
     pub web_ns: WebNS,
@@ -13,7 +14,6 @@ pub(crate) struct StaticWebAttr {
 }
 
 pub(crate) struct StaticWebAttrLookupTables {
-    pub static_symbol_ns: &'static StaticWebAttrSymbolNamespace,
     pub attribute_unicase_map: phf::Map<StaticUniCase, u32>,
     pub property_map: phf::Map<&'static str, u32>,
 }
@@ -22,14 +22,14 @@ impl StaticWebAttrLookupTables {
     pub fn attribute_by_local_name(&'static self, local_name: &str) -> Result<Symbol, Error> {
         self.attribute_unicase_map
             .get(&unicase::UniCase::ascii(local_name))
-            .map(|static_id| Symbol::Static(self.static_symbol_ns, *static_id))
+            .map(|static_id| Symbol::Static(&__ATTR_SYMBOL_NS, *static_id))
             .ok_or_else(|| Error::InvalidAttribute)
     }
 
     pub fn attribute_by_property_name(&'static self, property_name: &str) -> Result<Symbol, Error> {
         self.property_map
             .get(property_name)
-            .map(|static_id| Symbol::Static(self.static_symbol_ns, *static_id))
+            .map(|static_id| Symbol::Static(&__ATTR_SYMBOL_NS, *static_id))
             .ok_or_else(|| Error::InvalidAttribute)
     }
 }

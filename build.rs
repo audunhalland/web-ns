@@ -174,8 +174,7 @@ fn codegen_static_web_attr_ns_lookup_tables(
         writeln!(
             &mut f,
             r#"
-pub(crate) const __ATTR_LOOKUP_TABLES: StaticWebAttrLookupTables = StaticWebAttrLookupTables {{
-    static_symbol_ns: &__ATTR_SYMBOL_NS,"#,
+pub(crate) const __ATTR_LOOKUP_TABLES: StaticWebAttrLookupTables = StaticWebAttrLookupTables {{"#,
         )?;
 
         // Attribute name map:

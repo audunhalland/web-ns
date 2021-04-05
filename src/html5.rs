@@ -42,17 +42,17 @@ impl Html5Namespace {
 impl super::WebNamespace for Html5Namespace {
     fn element_by_local_name(&self, _local_name: &str) -> Result<Symbol, Error> {
         // HACK for now
-        Ok(Symbol::Static(&attributes::__ATTR_NS, 0))
+        Ok(Symbol::Static(&crate::symbols::__ATTR_SYMBOL_NS, 0))
     }
 
     fn attribute_by_local_name(&self, _: &Symbol, name: &str) -> Result<Symbol, Error> {
-        attributes::__ATTR_NS
+        attributes::__ATTR_LOOKUP_TABLES
             .attribute_by_local_name(name)
             .or_else(|_| self.parse_data_attribute(name))
     }
 
     fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
-        attributes::__ATTR_NS.attribute_by_property_name(property_name)
+        attributes::__ATTR_LOOKUP_TABLES.attribute_by_property_name(property_name)
     }
 }
 

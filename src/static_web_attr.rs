@@ -12,36 +12,41 @@ pub(crate) struct StaticWebAttr {
     pub attr_type: AttrType,
 }
 
-pub(crate) struct StaticWebAttrNS<const NS: u8> {
-    pub web_ns: crate::WebNS,
-    pub web_attrs: &'static [StaticWebAttr],
+pub(crate) struct StaticWebAttrLookupTables {
+    pub static_symbol_ns: &'static StaticWebAttrSymbolNamespace,
     pub attribute_unicase_map: phf::Map<StaticUniCase, u32>,
     pub property_map: phf::Map<&'static str, u32>,
 }
 
-impl<const NS: u8> StaticWebAttrNS<NS> {
+impl StaticWebAttrLookupTables {
     pub fn attribute_by_local_name(&'static self, local_name: &str) -> Result<Symbol, Error> {
         self.attribute_unicase_map
             .get(&unicase::UniCase::ascii(local_name))
-            .map(|static_id| Symbol::Static(self, *static_id))
+            .map(|static_id| Symbol::Static(self.static_symbol_ns, *static_id))
             .ok_or_else(|| Error::InvalidAttribute)
     }
 
     pub fn attribute_by_property_name(&'static self, property_name: &str) -> Result<Symbol, Error> {
         self.property_map
             .get(property_name)
-            .map(|static_id| Symbol::Static(self, *static_id))
+            .map(|static_id| Symbol::Static(self.static_symbol_ns, *static_id))
             .ok_or_else(|| Error::InvalidAttribute)
     }
+}
 
+pub(crate) struct StaticWebAttrSymbolNamespace {
+    pub web_attrs: &'static [StaticWebAttr],
+}
+
+impl StaticWebAttrSymbolNamespace {
     pub fn property_name(&self, static_id: u32) -> &str {
         self.web_attrs[static_id as usize].property
     }
 }
 
-impl<const NS: u8> dyn_symbol::namespace::Static for StaticWebAttrNS<NS> {
+impl dyn_symbol::namespace::Static for StaticWebAttrSymbolNamespace {
     fn namespace_name(&self) -> &str {
-        self.web_ns.name()
+        "web"
     }
 
     fn symbol_name(&self, id: u32) -> &str {

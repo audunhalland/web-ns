@@ -10,6 +10,24 @@ pub mod attr_type;
 
 mod value;
 
+use super::WebNS;
+
+use dyn_symbol::Symbol;
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct Attribute(pub(crate) Symbol);
+
+impl Attribute {
+    pub fn info(&self) -> AttributeInfo {
+        panic!()
+    }
+}
+
+pub struct AttributeInfo {
+    web_ns: WebNS,
+    attr_type: attr_type::AttrType,
+}
+
 ///
 /// A typed attribute value.
 ///

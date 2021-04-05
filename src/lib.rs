@@ -18,6 +18,7 @@ pub mod html5;
 mod attr;
 mod static_unicase;
 mod static_web_attr;
+mod symbols;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {
@@ -60,9 +61,9 @@ pub enum Error {
 ///
 pub fn attribute_property_name(attribute: &Symbol) -> Option<&str> {
     use html5::data_attr::DataAttr;
-    use static_web_attr::StaticWebAttrNS;
+    use static_web_attr::StaticWebAttrSymbolNamespace;
 
-    if let Some((html5_ns, id)) = attribute.downcast_static::<StaticWebAttrNS</* HTML5 = */ 0>>() {
+    if let Some((html5_ns, id)) = attribute.downcast_static::<StaticWebAttrSymbolNamespace>() {
         return Some(html5_ns.property_name(id));
     }
 

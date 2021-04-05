@@ -20,14 +20,43 @@ fn main() {
     codegen().unwrap();
 }
 
+struct NamespaceDesc {
+    name: &'static str,
+    path: &'static str,
+}
+
+struct TagDef {
+    web_ns: &'static str,
+    static_id: usize,
+    pub_const_ident: String,
+    tag: &'static str,
+    is_void: bool,
+}
+
+struct AttributeDef {
+    web_ns: &'static str,
+    static_id: usize,
+    pub_const_ident: String,
+    attr: &'static str,
+    prop: &'static str,
+    flags: u32,
+}
+
 fn codegen() -> std::io::Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    codegen_static_web_attrs(
-        html5_defs::attrs::DEFS,
+    let _tag_defs = tag_defs();
+    let attribute_defs = attribute_defs();
+
+    codegen_static_attribute_symbols(
+        &attribute_defs,
+        Path::new(&out_dir).join("codegen_attr_symbols.rs"),
+    )?;
+
+    codegen_static_web_attr_ns_lookup_tables(
+        &attribute_defs,
         NamespaceDesc {
             name: "HTML5",
-            ns_index: 0,
             path: "crate::html5",
         },
         Path::new(&out_dir).join("codegen_static_html_attrs.rs"),
@@ -36,81 +65,117 @@ fn codegen() -> std::io::Result<()> {
     Ok(())
 }
 
-struct NamespaceDesc {
-    name: &'static str,
-    ns_index: usize,
-    path: &'static str,
-}
+fn tag_defs() -> Vec<TagDef> {
+    let mut defs = vec![];
 
-fn codegen_static_web_attrs(
-    defs: &[(&'static str, &'static str, u32)],
-    ns_desc: NamespaceDesc,
-    out_path: std::path::PathBuf,
-) -> std::io::Result<()> {
-    let mut file = BufWriter::new(File::create(&out_path)?);
-
-    struct Def {
-        static_id: usize,
-        pub_const_ident: String,
-        attr: &'static str,
-        prop: &'static str,
-        flags: u32,
+    for (tag, is_void) in html5_defs::tags::DEFS {
+        defs.push(TagDef {
+            web_ns: "HTML5",
+            static_id: defs.len(),
+            pub_const_ident: format!("{}", tag.replace('-', "_").to_uppercase()),
+            tag,
+            is_void: is_void.0,
+        });
     }
 
-    let defs: Vec<_> = defs
-        .iter()
-        .enumerate()
-        .map(|(static_id, (attr, prop, flags))| Def {
-            static_id,
+    defs
+}
+
+fn attribute_defs() -> Vec<AttributeDef> {
+    let mut defs = vec![];
+
+    for (attr, prop, flags) in html5_defs::attrs::DEFS {
+        defs.push(AttributeDef {
+            web_ns: "HTML5",
+            static_id: defs.len(),
             pub_const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
             attr,
             prop,
             flags: *flags,
-        })
-        .collect();
+        });
+    }
 
-    writeln!(&mut file, "use dyn_symbol::Symbol;")?;
-    writeln!(&mut file, "use crate::WebNS;")?;
+    defs
+}
+
+fn codegen_static_attribute_symbols(
+    defs: &[AttributeDef],
+    out_path: std::path::PathBuf,
+) -> std::io::Result<()> {
+    let mut f = BufWriter::new(File::create(&out_path)?);
+
+    writeln!(&mut f, "use crate::WebNS;")?;
     writeln!(
-        &mut file,
-        "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrNS}};"
+        &mut f,
+        "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrSymbolNamespace}};"
     )?;
-    writeln!(&mut file, "use crate::attr::attr_type::*;")?;
-    writeln!(&mut file, "use crate::static_unicase::*;")?;
-    writeln!(&mut file)?;
+    writeln!(&mut f, "use crate::attr::attr_type::*;")?;
+    writeln!(&mut f)?;
 
-    // StaticWebAttr array:
+    // Symbol definition array:
     {
         writeln!(
-            &mut file,
-            "const __WEB_ATTRS: [StaticWebAttr; {len}] = [",
+            &mut f,
+            "pub(crate) const __WEB_ATTRS: [StaticWebAttr; {len}] = [",
             len = defs.len()
         )?;
 
         for def in defs.iter() {
             writeln!(
-                &mut file,
-                r#"    StaticWebAttr {{ web_ns: WebNS::{ns_name}, name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
-                ns_name = ns_desc.name,
+                &mut f,
+                r#"    StaticWebAttr {{ web_ns: WebNS::{web_ns}, name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
+                web_ns = def.web_ns,
                 attr = def.attr,
                 prop = def.prop,
                 flags = def.flags
             )?;
         }
 
-        writeln!(&mut file, "];\n",)?;
+        writeln!(&mut f, "];\n",)?;
     }
+
+    // Symbol namespace for all known attributes:
+    {
+        writeln!(
+            &mut f,
+            r#"
+pub(crate) const __ATTR_SYMBOL_NS: StaticWebAttrSymbolNamespace = StaticWebAttrSymbolNamespace {{
+    web_attrs: &__WEB_ATTRS,
+}};"#,
+        )?;
+    }
+
+    Ok(())
+}
+
+fn codegen_static_web_attr_ns_lookup_tables(
+    defs: &[AttributeDef],
+    ns_desc: NamespaceDesc,
+    out_path: std::path::PathBuf,
+) -> std::io::Result<()> {
+    let mut f = BufWriter::new(File::create(&out_path)?);
+
+    let defs: Vec<_> = defs
+        .iter()
+        .filter(|def| def.web_ns == ns_desc.name)
+        .collect();
+
+    writeln!(&mut f, "use dyn_symbol::Symbol;")?;
+    writeln!(
+        &mut f,
+        "use crate::static_web_attr::{{StaticWebAttrLookupTables}};"
+    )?;
+    writeln!(&mut f, "use crate::static_unicase::*;")?;
+    writeln!(&mut f, "use crate::symbols::*;")?;
+    writeln!(&mut f)?;
 
     // Attribute class:
     {
         writeln!(
-            &mut file,
+            &mut f,
             r#"
-pub(crate) const __ATTR_NS: StaticWebAttrNS<{ns_index}> = StaticWebAttrNS {{
-    web_ns: crate::WebNS::{name},
-    web_attrs: &__WEB_ATTRS,"#,
-            ns_index = ns_desc.ns_index,
-            name = ns_desc.name,
+pub(crate) const __ATTR_LOOKUP_TABLES: StaticWebAttrLookupTables = StaticWebAttrLookupTables {{
+    static_symbol_ns: &__ATTR_SYMBOL_NS,"#,
         )?;
 
         // Attribute name map:
@@ -138,7 +203,7 @@ pub(crate) const __ATTR_NS: StaticWebAttrNS<{ns_index}> = StaticWebAttrNS {{
             }
 
             writeln!(
-                &mut file,
+                &mut f,
                 "    attribute_unicase_map: {},",
                 map_codegen.build()
             )?;
@@ -165,41 +230,20 @@ pub(crate) const __ATTR_NS: StaticWebAttrNS<{ns_index}> = StaticWebAttrNS {{
                 map_codegen.entry(key, &format!("{}", def.static_id));
             }
 
-            writeln!(&mut file, "    property_map: {},\n", map_codegen.build())?;
+            writeln!(&mut f, "    property_map: {},\n", map_codegen.build())?;
         }
 
-        writeln!(&mut file, "}};\n",)?;
+        writeln!(&mut f, "}};\n",)?;
     }
-
-    // Static name array:
-    /*
-    {
-        writeln!(
-            &mut file,
-            "pub(crate) const __STATIC_NAMES: [StaticName; {len}] = [",
-            len = defs.len()
-        )?;
-
-        for def in defs.iter() {
-            writeln!(
-                &mut file,
-                r#"    StaticName {{ class: &__CLASS, static_id: {static_id} }},"#,
-                static_id = def.static_id
-            )?;
-        }
-
-        writeln!(&mut file, "];\n",)?;
-    }
-    */
 
     // Public interface:
     {
         for def in defs.iter() {
             writeln!(
-                &mut file,
+                &mut f,
                 r#"
 /// The {ns_name} `{attr}` attribute
-pub const {pub_const_ident}: Symbol = Symbol::Static(&__ATTR_NS, {static_id});"#,
+pub const {pub_const_ident}: Symbol = Symbol::Static(&__ATTR_SYMBOL_NS, {static_id});"#,
                 ns_name = ns_desc.name,
                 attr = def.attr,
                 pub_const_ident = def.pub_const_ident,
@@ -207,7 +251,7 @@ pub const {pub_const_ident}: Symbol = Symbol::Static(&__ATTR_NS, {static_id});"#
             )?;
         }
 
-        writeln!(&mut file, "",)?;
+        writeln!(&mut f, "",)?;
     }
 
     Ok(())

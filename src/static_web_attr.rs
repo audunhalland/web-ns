@@ -4,7 +4,7 @@ use crate::{Error, WebNS};
 
 use crate::attr::attr_type::AttrType;
 use crate::static_unicase::StaticUniCase;
-use crate::symbols::__ATTR_SYMBOL_NS;
+use crate::symbols::attr::__ATTR_SYMBOL_NS;
 
 pub(crate) struct StaticWebAttr {
     pub web_ns: WebNS,
@@ -46,7 +46,7 @@ impl StaticWebAttrSymbolNamespace {
 
 impl dyn_symbol::namespace::Static for StaticWebAttrSymbolNamespace {
     fn namespace_name(&self) -> &str {
-        "web"
+        "web-attr"
     }
 
     fn symbol_name(&self, id: u32) -> &str {

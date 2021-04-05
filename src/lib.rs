@@ -18,6 +18,7 @@ pub mod html5;
 mod attr;
 mod static_unicase;
 mod static_web_attr;
+mod static_web_tag;
 mod symbols;
 
 #[derive(Clone, Copy, Eq, PartialEq)]

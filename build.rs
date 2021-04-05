@@ -45,8 +45,13 @@ struct AttributeDef {
 fn codegen() -> std::io::Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    let _tag_defs = tag_defs();
+    let tag_defs = tag_defs();
     let attribute_defs = attribute_defs();
+
+    codegen_static_tag_symbols(
+        &tag_defs,
+        Path::new(&out_dir).join("codegen_tag_symbols.rs"),
+    )?;
 
     codegen_static_attribute_symbols(
         &attribute_defs,
@@ -96,6 +101,53 @@ fn attribute_defs() -> Vec<AttributeDef> {
     }
 
     defs
+}
+
+fn codegen_static_tag_symbols(
+    defs: &[TagDef],
+    out_path: std::path::PathBuf,
+) -> std::io::Result<()> {
+    let mut f = BufWriter::new(File::create(&out_path)?);
+
+    writeln!(&mut f, "use crate::WebNS;")?;
+    writeln!(
+        &mut f,
+        "use crate::static_web_tag::{{StaticWebTag, StaticWebTagSymbolNamespace}};"
+    )?;
+    writeln!(&mut f)?;
+
+    // Symbol definition array:
+    {
+        writeln!(
+            &mut f,
+            "pub(crate) const __WEB_TAGS: [StaticWebTag; {len}] = [",
+            len = defs.len()
+        )?;
+
+        for def in defs.iter() {
+            writeln!(
+                &mut f,
+                r#"    StaticWebTag {{ web_ns: WebNS::{web_ns}, name: "{attr}" }},"#,
+                web_ns = def.web_ns,
+                attr = def.tag,
+            )?;
+        }
+
+        writeln!(&mut f, "];\n",)?;
+    }
+
+    // Symbol namespace for all known attributes:
+    {
+        writeln!(
+            &mut f,
+            r#"
+pub(crate) const __TAG_SYMBOL_NS: StaticWebTagSymbolNamespace = StaticWebTagSymbolNamespace {{
+    web_tags: &__WEB_TAGS,
+}};"#,
+        )?;
+    }
+
+    Ok(())
 }
 
 fn codegen_static_attribute_symbols(
@@ -166,7 +218,7 @@ fn codegen_static_web_attr_ns_lookup_tables(
         "use crate::static_web_attr::{{StaticWebAttrLookupTables}};"
     )?;
     writeln!(&mut f, "use crate::static_unicase::*;")?;
-    writeln!(&mut f, "use crate::symbols::*;")?;
+    writeln!(&mut f, "use crate::symbols::attr::*;")?;
     writeln!(&mut f)?;
 
     // Attribute class:

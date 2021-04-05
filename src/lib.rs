@@ -64,8 +64,9 @@ pub fn attribute_property_name(attribute: &Symbol) -> Option<&str> {
     use html5::data_attr::DataAttr;
     use static_web_attr::StaticWebAttrSymbolNamespace;
 
-    if let Some((html5_ns, id)) = attribute.downcast_static::<StaticWebAttrSymbolNamespace>() {
-        return Some(html5_ns.property_name(id));
+    if let Some((static_attr_ns, id)) = attribute.downcast_static::<StaticWebAttrSymbolNamespace>()
+    {
+        return Some(static_attr_ns.property_name(id));
     }
 
     if let Some(data_attr) = attribute.downcast_dyn::<DataAttr>() {

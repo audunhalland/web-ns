@@ -8,6 +8,11 @@ use crate::Error;
 
 use super::*;
 
+pub mod tags {
+    //! Tag definitions for HTML5
+    include!(concat!(env!("OUT_DIR"), "/codegen_static_html_tags.rs"));
+}
+
 pub mod attributes {
     //! Attribute definitions for HTML5
     include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
@@ -40,9 +45,8 @@ impl Html5Namespace {
 }
 
 impl super::WebNamespace for Html5Namespace {
-    fn element_by_local_name(&self, _local_name: &str) -> Result<Symbol, Error> {
-        // HACK for now
-        Ok(Symbol::Static(&crate::symbols::tag::__TAG_SYMBOL_NS, 0))
+    fn element_by_local_name(&self, name: &str) -> Result<Symbol, Error> {
+        tags::__TAG_LOOKUP_TABLE.tag_by_local_name(name)
     }
 
     fn attribute_by_local_name(&self, _: &Symbol, name: &str) -> Result<Symbol, Error> {
@@ -119,7 +123,7 @@ mod tests {
     }
 
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
-        let element = html5::HTML5_NS.element_by_local_name("test").unwrap();
+        let element = html5::tags::DIV;
 
         if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
             let expected = expected.expect("Expected no match, but there was a match");

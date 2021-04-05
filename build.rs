@@ -58,6 +58,15 @@ fn codegen() -> std::io::Result<()> {
         Path::new(&out_dir).join("codegen_attr_symbols.rs"),
     )?;
 
+    codegen_static_web_tag_ns_lookup_tables(
+        &tag_defs,
+        NamespaceDesc {
+            name: "HTML5",
+            path: "crate::html5",
+        },
+        Path::new(&out_dir).join("codegen_static_html_tags.rs"),
+    )?;
+
     codegen_static_web_attr_ns_lookup_tables(
         &attribute_defs,
         NamespaceDesc {
@@ -195,6 +204,86 @@ pub(crate) const __ATTR_SYMBOL_NS: StaticWebAttrSymbolNamespace = StaticWebAttrS
     web_attrs: &__WEB_ATTRS,
 }};"#,
         )?;
+    }
+
+    Ok(())
+}
+
+fn codegen_static_web_tag_ns_lookup_tables(
+    defs: &[TagDef],
+    ns_desc: NamespaceDesc,
+    out_path: std::path::PathBuf,
+) -> std::io::Result<()> {
+    let mut f = BufWriter::new(File::create(&out_path)?);
+
+    let defs: Vec<_> = defs
+        .iter()
+        .filter(|def| def.web_ns == ns_desc.name)
+        .collect();
+
+    writeln!(&mut f, "use dyn_symbol::Symbol;")?;
+    writeln!(
+        &mut f,
+        "use crate::static_web_tag::{{StaticWebTagLookupTable}};"
+    )?;
+    writeln!(&mut f, "use crate::static_unicase::*;")?;
+    writeln!(&mut f, "use crate::symbols::tag::*;")?;
+    writeln!(&mut f)?;
+
+    // Attribute class:
+    {
+        writeln!(
+            &mut f,
+            r#"
+pub(crate) const __TAG_LOOKUP_TABLE: StaticWebTagLookupTable = StaticWebTagLookupTable {{"#,
+        )?;
+
+        // Tag name map:
+        {
+            let def_keys: Vec<_> = defs
+                .iter()
+                .map(|def| {
+                    (
+                        def,
+                        PhfKeyRef {
+                            key: StaticUniCase::new(def.tag),
+                            ref_expr: format!(
+                                "StaticUniCase::new(__WEB_TAGS[{}].name)",
+                                def.static_id
+                            ),
+                        },
+                    )
+                })
+                .collect();
+
+            let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> =
+                phf_codegen::Map::new();
+            for (def, key) in def_keys {
+                map_codegen.entry(key, &format!("{}", def.static_id));
+            }
+
+            writeln!(&mut f, "    tag_unicase_map: {},", map_codegen.build())?;
+        }
+
+        writeln!(&mut f, "}};\n",)?;
+    }
+
+    // Public interface:
+    {
+        for def in defs.iter() {
+            writeln!(
+                &mut f,
+                r#"
+/// The {ns_name} `{tag}` element tag name
+pub const {pub_const_ident}: Symbol = Symbol::Static(&__TAG_SYMBOL_NS, {static_id});"#,
+                ns_name = ns_desc.name,
+                tag = def.tag,
+                pub_const_ident = def.pub_const_ident,
+                static_id = def.static_id,
+            )?;
+        }
+
+        writeln!(&mut f, "",)?;
     }
 
     Ok(())

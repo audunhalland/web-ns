@@ -23,15 +23,11 @@ fn main() {
 fn codegen() -> std::io::Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    codegen_attrs(
-        html5_defs::attrs::DEFS,
-        Path::new(&out_dir).join("codegen_html_attrs.rs"),
-    )?;
-
     codegen_static_web_attrs(
         html5_defs::attrs::DEFS,
         NamespaceDesc {
             name: "HTML5",
+            ns_index: 0,
             path: "crate::html5",
         },
         Path::new(&out_dir).join("codegen_static_html_attrs.rs"),
@@ -42,129 +38,8 @@ fn codegen() -> std::io::Result<()> {
 
 struct NamespaceDesc {
     name: &'static str,
+    ns_index: usize,
     path: &'static str,
-}
-
-fn codegen_attrs(
-    defs: &[(&'static str, &'static str, u32)],
-    out_path: std::path::PathBuf,
-) -> std::io::Result<()> {
-    let mut file = BufWriter::new(File::create(&out_path)?);
-
-    struct Def {
-        const_ident: String,
-        pub_fn_ident: String,
-        attr: &'static str,
-        prop: &'static str,
-        flags: u32,
-    }
-
-    let defs: Vec<_> = defs
-        .iter()
-        .map(|(attr, prop, flags)| Def {
-            const_ident: format!("INTERNAL_{}", attr.replace('-', "_").to_uppercase()),
-            pub_fn_ident: format!("r#{}", attr.replace('-', "_")),
-            attr,
-            prop,
-            flags: *flags,
-        })
-        .collect();
-
-    writeln!(&mut file, "use crate::attr::Attribute;")?;
-    writeln!(&mut file, "use crate::attr::attr_impl::*;")?;
-    writeln!(&mut file, "use crate::attr::attr_type::*;")?;
-    writeln!(&mut file, "use crate::static_unicase::*;")?;
-    writeln!(&mut file)?;
-
-    // Public interface:
-    {
-        for def in defs.iter() {
-            writeln!(
-                &mut file,
-                r#"
-pub fn {pub_fn_ident}() -> Attribute {{
-    AttrImpl::Internal(&{const_ident}).into()
-}}"#,
-                pub_fn_ident = def.pub_fn_ident,
-                const_ident = def.const_ident
-            )?;
-        }
-    }
-
-    // Internal definitions:
-    {
-        for def in defs.iter() {
-            writeln!(
-                &mut file,
-                r#"
-const {const_ident}: InternalAttr = InternalAttr {{
-    attribute: "{attr}",
-    property: "{prop}",
-    attr_type: AttrType({flags})
-}};"#,
-                const_ident = def.const_ident,
-                attr = def.attr,
-                prop = def.prop,
-                flags = def.flags
-            )?;
-        }
-    }
-
-    // Attribute map:
-    {
-        let def_keys: Vec<_> = defs
-            .iter()
-            .map(|def| {
-                (
-                    def,
-                    PhfKeyRef {
-                        key: StaticUniCase::new(def.attr),
-                        ref_expr: format!("StaticUniCase::new({}.attribute)", def.const_ident),
-                    },
-                )
-            })
-            .collect();
-
-        let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> = phf_codegen::Map::new();
-        for (def, key) in def_keys {
-            map_codegen.entry(key, &format!("&{}", def.const_ident));
-        }
-
-        writeln!(
-            &mut file,
-            "static ATTRIBUTE_UNICASE_PHF: phf::Map<StaticUniCase, &'static InternalAttr> = \n{};\n",
-            map_codegen.build()
-        )?;
-    }
-
-    // Property map:
-    {
-        let def_keys: Vec<_> = defs
-            .iter()
-            .map(|def| {
-                (
-                    def,
-                    PhfKeyRef {
-                        key: def.prop,
-                        ref_expr: format!("{}.property", def.const_ident),
-                    },
-                )
-            })
-            .collect();
-
-        let mut map_codegen: phf_codegen::Map<PhfKeyRef<&'static str>> = phf_codegen::Map::new();
-        for (def, key) in def_keys {
-            map_codegen.entry(key, &format!("&{}", def.const_ident));
-        }
-
-        writeln!(
-            &mut file,
-            "static PROPERTY_PHF: phf::Map<&'static str, &'static InternalAttr> = \n{};\n",
-            map_codegen.build()
-        )?;
-    }
-
-    Ok(())
 }
 
 fn codegen_static_web_attrs(
@@ -195,7 +70,6 @@ fn codegen_static_web_attrs(
         .collect();
 
     writeln!(&mut file, "use dyn_symbol::Symbol;")?;
-    writeln!(&mut file, "use crate::new::Attribute;")?;
     // writeln!(&mut file, "use doml::name::StaticName;")?;
     writeln!(
         &mut file,
@@ -231,9 +105,10 @@ fn codegen_static_web_attrs(
         writeln!(
             &mut file,
             r#"
-pub(crate) const __ATTR_NS: StaticWebAttrNS<0> = StaticWebAttrNS {{
+pub(crate) const __ATTR_NS: StaticWebAttrNS<{ns_index}> = StaticWebAttrNS {{
     web_ns: crate::WebNS::{name},
     web_attrs: &__WEB_ATTRS,"#,
+            ns_index = ns_desc.ns_index,
             name = ns_desc.name,
         )?;
 
@@ -323,7 +198,7 @@ pub(crate) const __ATTR_NS: StaticWebAttrNS<0> = StaticWebAttrNS {{
                 &mut file,
                 r#"
 /// The {ns_name} `{attr}` attribute
-pub const {pub_const_ident}: Attribute = Attribute(Symbol::Static(&__ATTR_NS, {static_id}));"#,
+pub const {pub_const_ident}: Symbol = Symbol::Static(&__ATTR_NS, {static_id});"#,
                 ns_name = ns_desc.name,
                 attr = def.attr,
                 pub_const_ident = def.pub_const_ident,

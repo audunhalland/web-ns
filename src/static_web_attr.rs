@@ -1,6 +1,5 @@
 use dyn_symbol::Symbol;
 
-use crate::new::Attribute;
 use crate::Error;
 
 use crate::attr::attr_type::AttrType;
@@ -20,20 +19,17 @@ pub(crate) struct StaticWebAttrNS<const NS: u8> {
 }
 
 impl<const NS: u8> StaticWebAttrNS<NS> {
-    pub fn attribute_by_local_name(&'static self, local_name: &str) -> Result<Attribute, Error> {
+    pub fn attribute_by_local_name(&'static self, local_name: &str) -> Result<Symbol, Error> {
         self.attribute_unicase_map
             .get(&unicase::UniCase::ascii(local_name))
-            .map(|static_id| Attribute(Symbol::Static(self, *static_id)))
+            .map(|static_id| Symbol::Static(self, *static_id))
             .ok_or_else(|| Error::InvalidAttribute)
     }
 
-    pub fn attribute_by_property_name(
-        &'static self,
-        property_name: &str,
-    ) -> Result<Attribute, Error> {
+    pub fn attribute_by_property_name(&'static self, property_name: &str) -> Result<Symbol, Error> {
         self.property_map
             .get(property_name)
-            .map(|static_id| Attribute(Symbol::Static(self, *static_id)))
+            .map(|static_id| Symbol::Static(self, *static_id))
             .ok_or_else(|| Error::InvalidAttribute)
     }
 

@@ -3,27 +3,21 @@
 //! # Usage
 //!
 //! ```
-//! use doml::*;
-//! use doml_web::html5::HTML5_NS;
+//! use web_ns::*;
 //!
-//! let element = HTML5_NS.element_by_local_name("div").unwrap();
+//! let element = html5::HTML5_NS.element_by_local_name("div").unwrap();
 //! ```
 //!
 
 #![forbid(unsafe_code)]
 
+use dyn_symbol::Symbol;
+
 pub mod html5;
 
 mod attr;
-mod new;
 mod static_unicase;
 mod static_web_attr;
-
-pub mod schema {
-    pub mod html5;
-}
-
-use new::{Attribute, Element};
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {
@@ -48,11 +42,11 @@ pub enum Schema {
 struct Private;
 
 pub trait WebNamespace {
-    fn element_by_local_name(&self, _local_name: &str) -> Result<Element, Error>;
+    fn element_by_local_name(&self, _local_name: &str) -> Result<Symbol, Error>;
 
-    fn attribute_by_local_name(&self, _: &Element, local_name: &str) -> Result<Attribute, Error>;
+    fn attribute_by_local_name(&self, _: &Symbol, local_name: &str) -> Result<Symbol, Error>;
 
-    fn attribute_by_property(&self, property_name: &str) -> Result<Attribute, Error>;
+    fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error>;
 }
 
 #[derive(Debug)]
@@ -66,40 +60,22 @@ pub enum Error {
 ///
 /// # Example
 /// ```
-/// assert_eq!(attribute_property_name(&crate::html5::attributes::CLASS), Some("className"));
+/// use web_ns::*;
+///
+/// assert_eq!(attribute_property_name(&html5::attributes::CLASS), Some("className"));
 /// ```
 ///
-pub fn attribute_property_name(attribute: &Attribute) -> Option<&str> {
+pub fn attribute_property_name(attribute: &Symbol) -> Option<&str> {
     use html5::data_attr::DataAttr;
     use static_web_attr::StaticWebAttrNS;
 
-    if let Some((html5_ns, id)) = attribute
-        .0
-        .downcast_static::<StaticWebAttrNS</* HTML5 = */ 0>>()
-    {
+    if let Some((html5_ns, id)) = attribute.downcast_static::<StaticWebAttrNS</* HTML5 = */ 0>>() {
         return Some(html5_ns.property_name(id));
     }
 
-    if let Some(data_attr) = attribute.0.downcast_dyn::<DataAttr>() {
+    if let Some(data_attr) = attribute.downcast_dyn::<DataAttr>() {
         return Some(data_attr.property_name());
     }
 
     return None;
-
-    /*
-    let (class, id) = attribute.name().instance();
-
-    match id {
-        Some(static_id) => {
-            if let Some(static_web_attr_class) =
-                class.downcast_ref::<static_web_attr::StaticWebAttrNS>()
-            {
-                Some(static_web_attr_class.property_name(static_id))
-            } else {
-                None
-            }
-        }
-        None => None,
-    }
-    */
 }

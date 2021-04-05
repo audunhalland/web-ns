@@ -1,5 +1,5 @@
 [package]
-name = "doml"
+name = "web-ns"
 version = "0.1.0"
 authors = ["Audun Halland <audun.halland@gmail.com>"]
 edition = "2018"

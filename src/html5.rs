@@ -4,7 +4,6 @@ use dyn_symbol::Symbol;
 
 use crate::attr::attr_type::flags;
 use crate::attr::attr_type::AttrType;
-use crate::new::{Attribute, Element};
 use crate::Error;
 
 use super::*;
@@ -21,7 +20,7 @@ pub struct Html5Namespace(Private);
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
 impl Html5Namespace {
-    fn parse_data_attribute(&self, name: &str) -> Result<Attribute, Error> {
+    fn parse_data_attribute(&self, name: &str) -> Result<Symbol, Error> {
         if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
             let strbuf = format!(
                 "data-{}data{}{}",
@@ -29,11 +28,11 @@ impl Html5Namespace {
                 name.chars().nth(5).unwrap().to_uppercase(),
                 &name[6..]
             );
-            Ok(Attribute(Symbol::Dynamic(Box::new(data_attr::DataAttr {
+            Ok(Symbol::Dynamic(Box::new(data_attr::DataAttr {
                 strbuf,
                 buf_property_start: name.len(),
                 attr_type: AttrType(flags::STRING),
-            }))))
+            })))
         } else {
             Err(Error::InvalidAttribute)
         }
@@ -41,18 +40,18 @@ impl Html5Namespace {
 }
 
 impl super::WebNamespace for Html5Namespace {
-    fn element_by_local_name(&self, _local_name: &str) -> Result<Element, Error> {
+    fn element_by_local_name(&self, _local_name: &str) -> Result<Symbol, Error> {
         // HACK for now
-        Ok(Element(Symbol::Static(&attributes::__ATTR_NS, 0)))
+        Ok(Symbol::Static(&attributes::__ATTR_NS, 0))
     }
 
-    fn attribute_by_local_name(&self, _: &Element, name: &str) -> Result<Attribute, Error> {
+    fn attribute_by_local_name(&self, _: &Symbol, name: &str) -> Result<Symbol, Error> {
         attributes::__ATTR_NS
             .attribute_by_local_name(name)
             .or_else(|_| self.parse_data_attribute(name))
     }
 
-    fn attribute_by_property(&self, property_name: &str) -> Result<Attribute, Error> {
+    fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
         attributes::__ATTR_NS.attribute_by_property_name(property_name)
     }
 }
@@ -124,7 +123,7 @@ mod tests {
 
         if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
             let expected = expected.expect("Expected no match, but there was a match");
-            assert_eq!(attribute.local_name(), expected.0);
+            assert_eq!(attribute.name(), expected.0);
             assert_eq!(attribute_property_name(&attribute).unwrap(), expected.1);
         } else {
             assert!(expected.is_none());

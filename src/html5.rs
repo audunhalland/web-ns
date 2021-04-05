@@ -1,13 +1,13 @@
 //! HTML5 implementation
 
-use std::hash::Hasher;
+use dyn_symbol::Symbol;
 
+use crate::attr::attr_type::flags;
+use crate::attr::attr_type::AttrType;
 use crate::new::{Attribute, Element};
 use crate::Error;
 
 use super::*;
-
-use crate::attr::attr_type::AttrType;
 
 pub mod attributes {
     //! Attribute definitions for HTML5
@@ -20,13 +20,36 @@ pub struct Html5Namespace(Private);
 /// The global [Html5Namespace] instance.
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
+impl Html5Namespace {
+    fn parse_data_attribute(&self, name: &str) -> Result<Attribute, Error> {
+        if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
+            let strbuf = format!(
+                "data-{}data{}{}",
+                &name[5..],
+                name.chars().nth(5).unwrap().to_uppercase(),
+                &name[6..]
+            );
+            Ok(Attribute(Symbol::Dynamic(Box::new(data_attr::DataAttr {
+                strbuf,
+                buf_property_start: name.len(),
+                attr_type: AttrType(flags::STRING),
+            }))))
+        } else {
+            Err(Error::InvalidAttribute)
+        }
+    }
+}
+
 impl super::WebNamespace for Html5Namespace {
     fn element_by_local_name(&self, _local_name: &str) -> Result<Element, Error> {
-        todo!()
+        // HACK for now
+        Ok(Element(Symbol::Static(&attributes::__ATTR_NS, 0)))
     }
 
-    fn attribute_by_local_name(&self, _: &Element, local_name: &str) -> Result<Attribute, Error> {
-        attributes::__ATTR_NS.attribute_by_local_name(local_name)
+    fn attribute_by_local_name(&self, _: &Element, name: &str) -> Result<Attribute, Error> {
+        attributes::__ATTR_NS
+            .attribute_by_local_name(name)
+            .or_else(|_| self.parse_data_attribute(name))
     }
 
     fn attribute_by_property(&self, property_name: &str) -> Result<Attribute, Error> {
@@ -34,10 +57,50 @@ impl super::WebNamespace for Html5Namespace {
     }
 }
 
-pub struct DataAttr {
-    pub strbuf: String,
-    pub buf_property_start: usize,
-    pub attr_type: AttrType,
+mod data_attr {
+    use super::*;
+    use dyn_symbol::namespace::Dynamic;
+
+    #[derive(Clone)]
+    pub struct DataAttr {
+        pub strbuf: String,
+        pub buf_property_start: usize,
+        pub attr_type: AttrType,
+    }
+
+    impl DataAttr {
+        fn attr_name(&self) -> &str {
+            &self.strbuf[..self.buf_property_start]
+        }
+    }
+
+    impl Dynamic for DataAttr {
+        fn namespace_name(&self) -> &str {
+            "html5::data"
+        }
+
+        fn symbol_name(&self) -> &str {
+            &self.strbuf[..self.buf_property_start]
+        }
+
+        fn dyn_clone(&self) -> Box<dyn Dynamic> {
+            Box::new(self.clone())
+        }
+
+        fn dyn_eq(&self, rhs: &dyn Dynamic) -> bool {
+            self.attr_name() == rhs.downcast_ref::<Self>().unwrap().attr_name()
+        }
+
+        fn dyn_cmp(&self, rhs: &dyn Dynamic) -> std::cmp::Ordering {
+            let rhs_attr_name = rhs.downcast_ref::<Self>().unwrap().attr_name();
+            self.attr_name().cmp(rhs_attr_name)
+        }
+
+        fn dyn_hash(&self, state: &mut dyn std::hash::Hasher) {
+            state.write(self.attr_name().as_bytes());
+            state.write_u8(0xff)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -53,9 +116,7 @@ mod tests {
     }
 
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
-        todo!();
-        /*
-        let element = doml::any_ns::ANY_NS.element_by_local_name("test").unwrap();
+        let element = html5::HTML5_NS.element_by_local_name("test").unwrap();
 
         if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
             let expected = expected.expect("Expected no match, but there was a match");
@@ -64,7 +125,6 @@ mod tests {
         } else {
             assert!(expected.is_none());
         }
-        */
     }
 
     #[test]

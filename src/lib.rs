@@ -11,15 +11,16 @@
 
 #![forbid(unsafe_code)]
 
-use dyn_symbol::Symbol;
+pub mod attr;
 
 pub mod html5;
 
-mod attr;
 mod static_unicase;
 mod static_web_attr;
 mod static_web_tag;
 mod symbols;
+
+use dyn_symbol::Symbol;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {
@@ -30,6 +31,12 @@ impl WebNS {
     fn name(&self) -> &'static str {
         match self {
             Self::HTML5 => "html5",
+        }
+    }
+
+    fn web_namespace(&self) -> &'static dyn WebNamespace {
+        match self {
+            Self::HTML5 => &html5::HTML5_NS,
         }
     }
 }
@@ -48,30 +55,4 @@ pub trait WebNamespace {
 pub enum Error {
     InvalidAttribute,
     InvalidAttributeValue,
-}
-
-///
-/// Access the JS DOM property name of an attribute.
-///
-/// # Example
-/// ```
-/// use web_ns::*;
-///
-/// assert_eq!(attribute_property_name(&html5::attributes::CLASS), Some("className"));
-/// ```
-///
-pub fn attribute_property_name(attribute: &Symbol) -> Option<&str> {
-    use html5::data_attr::DataAttr;
-    use static_web_attr::StaticWebAttrSymbolNamespace;
-
-    if let Some((static_attr_ns, id)) = attribute.downcast_static::<StaticWebAttrSymbolNamespace>()
-    {
-        return Some(static_attr_ns.property_name(id));
-    }
-
-    if let Some(data_attr) = attribute.downcast_dyn::<DataAttr>() {
-        return Some(data_attr.property_name());
-    }
-
-    return None;
 }

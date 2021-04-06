@@ -8,24 +8,51 @@
 pub mod attr_impl;
 pub mod attr_type;
 
+pub(crate) mod data;
+
 mod value;
 
-use super::WebNS;
-
 use dyn_symbol::Symbol;
+use std::convert::TryFrom;
 
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Attribute(pub(crate) Symbol);
+use crate::static_web_attr::StaticWebAttrSymbolNamespace;
+use crate::{Error, WebNS};
 
-impl Attribute {
-    pub fn info(&self) -> AttributeInfo {
-        panic!()
+pub struct AttributeInfo<'a> {
+    pub(crate) web_ns: WebNS,
+    pub(crate) attr_type: attr_type::AttrType,
+    pub(crate) property: Option<&'a str>,
+}
+
+impl<'a> AttributeInfo<'a> {
+    pub fn web_namespace(&self) -> &dyn crate::WebNamespace {
+        self.web_ns.web_namespace()
+    }
+
+    pub fn attr_type(&self) -> attr_type::AttrType {
+        self.attr_type
+    }
+
+    pub fn property(&self) -> Option<&'a str> {
+        self.property
     }
 }
 
-pub struct AttributeInfo {
-    web_ns: WebNS,
-    attr_type: attr_type::AttrType,
+impl<'a> TryFrom<&'a Symbol> for AttributeInfo<'a> {
+    type Error = crate::Error;
+
+    fn try_from(value: &'a Symbol) -> Result<Self, Self::Error> {
+        if let Some((static_attr_ns, id)) = value.downcast_static::<StaticWebAttrSymbolNamespace>()
+        {
+            return Ok(static_attr_ns.attribte_info(id));
+        }
+
+        if let Some(data_attr) = value.downcast_dyn::<data::DataAttr>() {
+            return Ok(data_attr.attribute_info());
+        }
+
+        Err(Error::InvalidAttribute)
+    }
 }
 
 ///

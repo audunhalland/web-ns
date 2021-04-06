@@ -1,10 +1,7 @@
-use dyn_symbol::Symbol;
-
-use crate::{Error, WebNS};
+use crate::{attr, Error, WebNS};
 
 use crate::attr::attr_type::AttrType;
 use crate::static_unicase::StaticUniCase;
-use crate::symbols::attr::__ATTR_SYMBOL_NS;
 
 pub(crate) struct StaticWebAttr {
     pub web_ns: WebNS,
@@ -19,17 +16,17 @@ pub(crate) struct StaticWebAttrLookupTables {
 }
 
 impl StaticWebAttrLookupTables {
-    pub fn attribute_by_local_name(&'static self, local_name: &str) -> Result<Symbol, Error> {
+    pub fn attribute_by_local_name(&'static self, local_name: &str) -> Result<u32, Error> {
         self.attribute_unicase_map
             .get(&unicase::UniCase::ascii(local_name))
-            .map(|static_id| Symbol::Static(&__ATTR_SYMBOL_NS, *static_id))
+            .cloned()
             .ok_or_else(|| Error::InvalidAttribute)
     }
 
-    pub fn attribute_by_property_name(&'static self, property_name: &str) -> Result<Symbol, Error> {
+    pub fn attribute_by_property_name(&'static self, property_name: &str) -> Result<u32, Error> {
         self.property_map
             .get(property_name)
-            .map(|static_id| Symbol::Static(&__ATTR_SYMBOL_NS, *static_id))
+            .cloned()
             .ok_or_else(|| Error::InvalidAttribute)
     }
 }
@@ -39,6 +36,15 @@ pub(crate) struct StaticWebAttrSymbolNamespace {
 }
 
 impl StaticWebAttrSymbolNamespace {
+    pub fn attribte_info(&self, static_id: u32) -> attr::AttributeInfo {
+        let attr = &self.web_attrs[static_id as usize];
+        attr::AttributeInfo {
+            web_ns: attr.web_ns.clone(),
+            attr_type: attr.attr_type.clone(),
+            property: Some(attr.property),
+        }
+    }
+
     pub fn property_name(&self, static_id: u32) -> &str {
         self.web_attrs[static_id as usize].property
     }

@@ -4,6 +4,7 @@ use dyn_symbol::Symbol;
 
 use crate::attr::attr_type::flags;
 use crate::attr::attr_type::AttrType;
+use crate::symbols::attr::__ATTR_SYMBOL_NS;
 use crate::Error;
 
 use super::*;
@@ -33,11 +34,13 @@ impl Html5Namespace {
                 name.chars().nth(5).unwrap().to_uppercase(),
                 &name[6..]
             );
-            Ok(Symbol::Dynamic(Box::new(data_attr::DataAttr {
+            let attr = attr::data::DataAttr {
                 strbuf,
                 buf_property_start: name.len(),
                 attr_type: AttrType(flags::STRING),
-            })))
+            };
+
+            Ok(Symbol::Dynamic(Box::new(attr)))
         } else {
             Err(Error::InvalidAttribute)
         }
@@ -52,61 +55,14 @@ impl super::WebNamespace for Html5Namespace {
     fn attribute_by_local_name(&self, _: &Symbol, name: &str) -> Result<Symbol, Error> {
         attributes::__ATTR_LOOKUP_TABLES
             .attribute_by_local_name(name)
+            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
             .or_else(|_| self.parse_data_attribute(name))
     }
 
     fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
-        attributes::__ATTR_LOOKUP_TABLES.attribute_by_property_name(property_name)
-    }
-}
-
-pub(crate) mod data_attr {
-    use super::*;
-    use dyn_symbol::namespace::Dynamic;
-
-    #[derive(Clone)]
-    pub struct DataAttr {
-        pub strbuf: String,
-        pub buf_property_start: usize,
-        pub attr_type: AttrType,
-    }
-
-    impl DataAttr {
-        pub fn attr_name(&self) -> &str {
-            &self.strbuf[..self.buf_property_start]
-        }
-
-        pub fn property_name(&self) -> &str {
-            &self.strbuf[self.buf_property_start..]
-        }
-    }
-
-    impl Dynamic for DataAttr {
-        fn namespace_name(&self) -> &str {
-            "html5::data"
-        }
-
-        fn symbol_name(&self) -> &str {
-            &self.strbuf[..self.buf_property_start]
-        }
-
-        fn dyn_clone(&self) -> Box<dyn Dynamic> {
-            Box::new(self.clone())
-        }
-
-        fn dyn_eq(&self, rhs: &dyn Dynamic) -> bool {
-            self.attr_name() == rhs.downcast_ref::<Self>().unwrap().attr_name()
-        }
-
-        fn dyn_cmp(&self, rhs: &dyn Dynamic) -> std::cmp::Ordering {
-            let rhs_attr_name = rhs.downcast_ref::<Self>().unwrap().attr_name();
-            self.attr_name().cmp(rhs_attr_name)
-        }
-
-        fn dyn_hash(&self, state: &mut dyn std::hash::Hasher) {
-            state.write(self.attr_name().as_bytes());
-            state.write_u8(0xff)
-        }
+        attributes::__ATTR_LOOKUP_TABLES
+            .attribute_by_property_name(property_name)
+            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
     }
 }
 
@@ -115,11 +71,14 @@ mod tests {
     use super::WebNamespace;
     use super::*;
 
+    use std::convert::TryFrom;
+
     #[test]
     fn html5_static_attribute_to_property_name() {
         let attribute = html5::attributes::CLASS;
 
-        assert_eq!(attribute_property_name(&attribute), Some("className"));
+        let info = attr::AttributeInfo::try_from(&attribute).unwrap();
+        assert_eq!(info.property(), Some("className"));
     }
 
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
@@ -128,7 +87,9 @@ mod tests {
         if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
             let expected = expected.expect("Expected no match, but there was a match");
             assert_eq!(attribute.name(), expected.0);
-            assert_eq!(attribute_property_name(&attribute).unwrap(), expected.1);
+
+            let info = attr::AttributeInfo::try_from(&attribute).unwrap();
+            assert_eq!(info.property, Some(expected.1));
         } else {
             assert!(expected.is_none());
         }
@@ -166,7 +127,9 @@ mod tests {
 
     #[test]
     fn properties_in_hashmap() {
-        // let mut hashmap = std::collections::HashMap::new();
-        // hashmap.insert(attributes::VLINK.clone(), 42);
+        let mut hashmap = std::collections::HashMap::new();
+        hashmap.insert(attributes::VLINK.clone(), 42);
+
+        assert_eq!(hashmap.get(&attributes::VLINK), Some(&42));
     }
 }

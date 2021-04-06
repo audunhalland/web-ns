@@ -20,9 +20,10 @@ mod static_web_attr;
 mod static_web_tag;
 mod symbols;
 
-use dyn_symbol::Symbol;
-
 pub use attr::*;
+
+// re-export dyn_symbol
+pub use dyn_symbol::Symbol;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {

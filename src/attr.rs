@@ -138,27 +138,3 @@ pub enum SerializedAttributeValue {
     /// `<foo attribute="bar" />`
     String(String),
 }
-
-/*
-///
-/// Parse a DOM property name.
-///
-/// # Usage
-///
-/// ```
-/// use web_ns::Schema;
-/// use web_ns::attr::parse_property;
-///
-/// let attr = parse_property("className", Schema::Html5).unwrap();
-/// assert_eq!(attr.attribute(), "class");
-/// ```
-///
-pub fn parse_property(property: &str, schema: Schema) -> Result<Attribute, Error> {
-    match schema {
-        Schema::Html5 => match schema::html5::attr::internal_attr_by_property(property) {
-            Some(internal_attr) => Ok(Attribute(AttrImpl::Internal(internal_attr))),
-            None => Err(Error::InvalidAttribute),
-        },
-    }
-}
-*/

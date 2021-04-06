@@ -31,6 +31,7 @@ impl Html5Namespace {
         attributes::__ATTR_LOOKUP_TABLES
             .attribute_by_property_name(property_name)
             .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
+            .or_else(|_| self.parse_data_property(property_name))
     }
 
     fn parse_data_attribute(&self, name: &str) -> Result<Symbol, Error> {
@@ -41,13 +42,29 @@ impl Html5Namespace {
                 name.chars().nth(5).unwrap().to_uppercase(),
                 &name[6..]
             );
-            let attr = attr::data::DataAttr {
+            Ok(Symbol::Dynamic(Box::new(attr::data::DataAttr {
                 strbuf,
                 buf_property_start: name.len(),
                 attr_type: AttrType(flags::STRING),
-            };
+            })))
+        } else {
+            Err(Error::InvalidAttribute)
+        }
+    }
 
-            Ok(Symbol::Dynamic(Box::new(attr)))
+    fn parse_data_property(&self, name: &str) -> Result<Symbol, Error> {
+        if name.len() > 4 && name.starts_with("data") {
+            let strbuf = format!(
+                "data-{}{}{}",
+                name.chars().nth(4).unwrap().to_lowercase(),
+                &name[5..],
+                name
+            );
+            Ok(Symbol::Dynamic(Box::new(attr::data::DataAttr {
+                strbuf,
+                buf_property_start: name.len() + 1,
+                attr_type: AttrType(flags::STRING),
+            })))
         } else {
             Err(Error::InvalidAttribute)
         }
@@ -94,7 +111,15 @@ mod tests {
             assert_eq!(attribute.name(), expected.0);
 
             let info = attr::AttributeInfo::try_from(&attribute).unwrap();
-            assert_eq!(info.property, Some(expected.1));
+            let property = info.property().map(ToString::to_string);
+            assert_eq!(property, Some(expected.1.to_string()));
+
+            let attr_by_prop = html5::HTML5_NS.attribute_by_property(expected.1).unwrap();
+            assert_eq!(attr_by_prop, attribute);
+            assert_eq!(attr_by_prop.name(), attribute.name());
+
+            let info = attr::AttributeInfo::try_from(&attr_by_prop).unwrap();
+            assert_eq!(info.property().map(ToString::to_string), property);
         } else {
             assert!(expected.is_none());
         }

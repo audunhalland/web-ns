@@ -26,6 +26,13 @@ pub struct Html5Namespace(Private);
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
 impl Html5Namespace {
+    /// Look up an attribute by its DOM JavaScript property name.
+    pub fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
+        attributes::__ATTR_LOOKUP_TABLES
+            .attribute_by_property_name(property_name)
+            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
+    }
+
     fn parse_data_attribute(&self, name: &str) -> Result<Symbol, Error> {
         if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
             let strbuf = format!(
@@ -48,6 +55,10 @@ impl Html5Namespace {
 }
 
 impl super::WebNamespace for Html5Namespace {
+    fn name(&self) -> &'static str {
+        "html5"
+    }
+
     fn element_by_local_name(&self, name: &str) -> Result<Symbol, Error> {
         tags::__TAG_LOOKUP_TABLE.tag_by_local_name(name)
     }
@@ -57,12 +68,6 @@ impl super::WebNamespace for Html5Namespace {
             .attribute_by_local_name(name)
             .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
             .or_else(|_| self.parse_data_attribute(name))
-    }
-
-    fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
-        attributes::__ATTR_LOOKUP_TABLES
-            .attribute_by_property_name(property_name)
-            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
     }
 }
 

@@ -22,18 +22,14 @@ mod symbols;
 
 use dyn_symbol::Symbol;
 
+pub use attr::*;
+
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {
-    HTML5 = 0,
+    HTML5,
 }
 
 impl WebNS {
-    fn name(&self) -> &'static str {
-        match self {
-            Self::HTML5 => "html5",
-        }
-    }
-
     fn web_namespace(&self) -> &'static dyn WebNamespace {
         match self {
             Self::HTML5 => &html5::HTML5_NS,
@@ -43,12 +39,26 @@ impl WebNS {
 
 struct Private;
 
+///
+/// A web namespace.
+///
 pub trait WebNamespace {
-    fn element_by_local_name(&self, _local_name: &str) -> Result<Symbol, Error>;
+    /// The name of this webspace.
+    fn name(&self) -> &'static str;
 
-    fn attribute_by_local_name(&self, _: &Symbol, local_name: &str) -> Result<Symbol, Error>;
+    ///
+    /// Look up an element by its local name within the namespace.
+    ///
+    /// The name matching is case-insensitive.
+    ///
+    fn element_by_local_name(&self, local_name: &str) -> Result<Symbol, Error>;
 
-    fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error>;
+    ///
+    /// Look up an attribute by its containing element and its local name within the namespace.
+    ///
+    /// The name matching is case-insensitive.
+    ///
+    fn attribute_by_local_name(&self, element: &Symbol, local_name: &str) -> Result<Symbol, Error>;
 }
 
 #[derive(Debug)]

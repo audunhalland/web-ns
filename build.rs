@@ -35,8 +35,27 @@ struct TagDef {
 
 struct AttributeDef {
     web_ns: &'static str,
+    kind: AttributeDefKind,
+}
+
+impl AttributeDef {
+    fn static_kind(&self) -> Option<&StaticAttributeDefKind> {
+        match &self.kind {
+            AttributeDefKind::Static(kind) => Some(kind),
+            _ => None,
+        }
+    }
+}
+
+enum AttributeDefKind {
+    Static(StaticAttributeDefKind),
+    Data,
+}
+
+struct StaticAttributeDefKind {
     static_id: usize,
     pub_const_ident: String,
+    enum_ident: String,
     attr: &'static str,
     prop: &'static str,
     flags: u32,
@@ -56,6 +75,11 @@ fn codegen() -> std::io::Result<()> {
     codegen_static_attribute_symbols(
         &attribute_defs,
         Path::new(&out_dir).join("codegen_attr_symbols.rs"),
+    )?;
+
+    codegen_static_attribute_enum(
+        &attribute_defs,
+        Path::new(&out_dir).join("codegen_attr_html_enums.rs"),
     )?;
 
     codegen_static_web_tag_ns_lookup_tables(
@@ -101,13 +125,29 @@ fn attribute_defs() -> Vec<AttributeDef> {
     for (attr, prop, flags) in html5_defs::attrs::DEFS {
         defs.push(AttributeDef {
             web_ns: "HTML5",
-            static_id: defs.len(),
-            pub_const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
-            attr,
-            prop,
-            flags: *flags,
+            kind: AttributeDefKind::Static(StaticAttributeDefKind {
+                static_id: defs.len(),
+                pub_const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
+                enum_ident: attr
+                    .split('-')
+                    .map(|seg| {
+                        let mut chars: Vec<char> = seg.chars().collect();
+                        chars[0] = chars[0].to_ascii_uppercase();
+                        chars.into_iter().collect::<String>()
+                    })
+                    .collect::<Vec<_>>()
+                    .join(""),
+                attr,
+                prop,
+                flags: *flags,
+            }),
         });
     }
+
+    defs.push(AttributeDef {
+        web_ns: "HTML5",
+        kind: AttributeDefKind::Data,
+    });
 
     defs
 }
@@ -159,6 +199,28 @@ pub(crate) const __TAG_SYMBOL_NS: StaticWebTagSymbolNamespace = StaticWebTagSymb
     Ok(())
 }
 
+fn codegen_static_attribute_enum(
+    defs: &[AttributeDef],
+    out_path: std::path::PathBuf,
+) -> std::io::Result<()> {
+    let mut f = BufWriter::new(File::create(&out_path)?);
+
+    writeln!(&mut f, "enum StaticAttributes {{")?;
+    for def in defs.iter() {
+        if let Some(static_kind) = def.static_kind() {
+            writeln!(
+                &mut f,
+                "    /// The {} '{}' attribute",
+                def.web_ns, static_kind.attr
+            )?;
+            writeln!(&mut f, "    {attr},\n", attr = static_kind.enum_ident,)?;
+        }
+    }
+    writeln!(&mut f, "}}")?;
+
+    Ok(())
+}
+
 fn codegen_static_attribute_symbols(
     defs: &[AttributeDef],
     out_path: std::path::PathBuf,
@@ -178,18 +240,20 @@ fn codegen_static_attribute_symbols(
         writeln!(
             &mut f,
             "pub(crate) const __WEB_ATTRS: [StaticWebAttr; {len}] = [",
-            len = defs.len()
+            len = defs.iter().filter_map(AttributeDef::static_kind).count()
         )?;
 
         for def in defs.iter() {
-            writeln!(
-                &mut f,
-                r#"    StaticWebAttr {{ web_ns: WebNS::{web_ns}, name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
-                web_ns = def.web_ns,
-                attr = def.attr,
-                prop = def.prop,
-                flags = def.flags
-            )?;
+            if let Some(static_kind) = def.static_kind() {
+                writeln!(
+                    &mut f,
+                    r#"    StaticWebAttr {{ web_ns: WebNS::{web_ns}, name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
+                    web_ns = def.web_ns,
+                    attr = static_kind.attr,
+                    prop = static_kind.prop,
+                    flags = static_kind.flags
+                )?;
+            }
         }
 
         writeln!(&mut f, "];\n",)?;
@@ -299,6 +363,7 @@ fn codegen_static_web_attr_ns_lookup_tables(
     let defs: Vec<_> = defs
         .iter()
         .filter(|def| def.web_ns == ns_desc.name)
+        .filter_map(AttributeDef::static_kind)
         .collect();
 
     writeln!(&mut f, "use dyn_symbol::Symbol;")?;

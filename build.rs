@@ -223,17 +223,16 @@ mod enums {
                 }
                 AttributeDefKind::Data => {
                     writeln!(f, "    /// Some {} 'data-' attribute", def.web_ns,)?;
-                    writeln!(f, "    Dataset,")?;
+                    writeln!(f, "    Dataset(Box<crate::attr::data::DataAttr>),")?;
                 }
             }
         }
         writeln!(f, "}}")?;
 
-        writeln!(f, "impl {} {{", enum_ident)?;
-
-        // local_name
+        // LocalName
         {
-            writeln!(f, "    pub fn local_name(&self) -> &str {{")?;
+            writeln!(f, "impl crate::LocalName for {} {{", enum_ident)?;
+            writeln!(f, "    fn local_name(&self) -> &str {{")?;
             writeln!(f, "        match self {{")?;
             for def in defs.iter() {
                 match &def.kind {
@@ -246,17 +245,19 @@ mod enums {
                         )?;
                     }
                     AttributeDefKind::Data => {
-                        writeln!(f, "            Self::Dataset => panic!(),")?;
+                        writeln!(f, "            Self::Dataset(data) => data.local_name(),")?;
                     }
                 }
             }
             writeln!(f, "        }}")?;
             writeln!(f, "    }}")?;
+            writeln!(f, "}}")?;
         }
 
-        // property
+        // PropertyName
         {
-            writeln!(f, "    pub fn property(&self) -> &str {{")?;
+            writeln!(f, "impl crate::PropertyName for {} {{", enum_ident)?;
+            writeln!(f, "    fn property_name(&self) -> &str {{")?;
             writeln!(f, "        match self {{")?;
             for def in defs.iter() {
                 match &def.kind {
@@ -269,15 +270,17 @@ mod enums {
                         )?;
                     }
                     AttributeDefKind::Data => {
-                        writeln!(f, r#"            Self::Dataset => panic!(),"#)?;
+                        writeln!(
+                            f,
+                            r#"            Self::Dataset(data) => data.property_name(),"#
+                        )?;
                     }
                 }
             }
             writeln!(f, "        }}")?;
             writeln!(f, "    }}")?;
+            writeln!(f, "}}")?;
         }
-
-        writeln!(f, "}}")?;
 
         Ok(())
     }

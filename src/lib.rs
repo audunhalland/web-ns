@@ -40,6 +40,14 @@ impl WebNS {
 
 struct Private;
 
+pub trait LocalName {
+    fn local_name(&self) -> &str;
+}
+
+pub trait PropertyName {
+    fn property_name(&self) -> &str;
+}
+
 ///
 /// A web namespace.
 ///

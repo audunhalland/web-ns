@@ -27,6 +27,18 @@ impl DataAttr {
     }
 }
 
+impl crate::LocalName for DataAttr {
+    fn local_name(&self) -> &str {
+        &self.strbuf[..self.buf_property_start]
+    }
+}
+
+impl crate::PropertyName for DataAttr {
+    fn property_name(&self) -> &str {
+        &self.strbuf[self.buf_property_start..]
+    }
+}
+
 impl Dynamic for DataAttr {
     fn namespace_name(&self) -> &str {
         "html5::data"

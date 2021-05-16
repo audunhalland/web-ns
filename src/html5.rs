@@ -32,24 +32,27 @@ impl Html5Namespace {
         attributes::__ATTR_LOOKUP_TABLES
             .attribute_by_property_name(property_name)
             .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
-            .or_else(|_| self.parse_data_property(property_name))
+            .or_else(|_| {
+                self.parse_data_property(property_name)
+                    .map(|data| Symbol::Dynamic(Box::new(data)))
+            })
     }
 
     pub fn typed_attribute_by_property(
         &self,
         property_name: &str,
     ) -> Result<attributes::HtmlAttr, Error> {
-        let static_attr = attributes::STATIC_PROPERTY_LOOKUP.get(property_name);
-
-        if let Some(attr) = static_attr {
-            Ok(attr.clone())
-        } else {
-            // TODO: Dataset
-            Err(Error::InvalidAttribute)
-        }
+        attributes::STATIC_PROPERTY_LOOKUP
+            .get(property_name)
+            .map(Clone::clone)
+            .ok_or_else(|| Error::InvalidAttribute)
+            .or_else(|_| {
+                self.parse_data_property(property_name)
+                    .map(|data| attributes::HtmlAttr::Dataset(Box::new(data)))
+            })
     }
 
-    fn parse_data_attribute(&self, name: &str) -> Result<Symbol, Error> {
+    fn parse_data_attribute(&self, name: &str) -> Result<attr::data::DataAttr, Error> {
         if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
             let strbuf = format!(
                 "data-{}data{}{}",
@@ -57,17 +60,17 @@ impl Html5Namespace {
                 name.chars().nth(5).unwrap().to_uppercase(),
                 &name[6..]
             );
-            Ok(Symbol::Dynamic(Box::new(attr::data::DataAttr {
+            Ok(attr::data::DataAttr {
                 strbuf,
                 buf_property_start: name.len(),
                 attr_type: AttrType(flags::STRING),
-            })))
+            })
         } else {
             Err(Error::InvalidAttribute)
         }
     }
 
-    fn parse_data_property(&self, name: &str) -> Result<Symbol, Error> {
+    fn parse_data_property(&self, name: &str) -> Result<attr::data::DataAttr, Error> {
         if name.len() > 4 && name.starts_with("data") {
             let strbuf = format!(
                 "data-{}{}{}",
@@ -75,11 +78,11 @@ impl Html5Namespace {
                 &name[5..],
                 name
             );
-            Ok(Symbol::Dynamic(Box::new(attr::data::DataAttr {
+            Ok(attr::data::DataAttr {
                 strbuf,
                 buf_property_start: name.len() + 1,
                 attr_type: AttrType(flags::STRING),
-            })))
+            })
         } else {
             Err(Error::InvalidAttribute)
         }
@@ -99,7 +102,10 @@ impl super::WebNamespace for Html5Namespace {
         attributes::__ATTR_LOOKUP_TABLES
             .attribute_by_local_name(name)
             .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
-            .or_else(|_| self.parse_data_attribute(name))
+            .or_else(|_| {
+                self.parse_data_attribute(name)
+                    .map(|attr| Symbol::Dynamic(Box::new(attr)))
+            })
     }
 }
 
@@ -120,14 +126,14 @@ impl super::TypedWebNamespace for Html5Namespace {
         _: &Self::Element,
         name: &str,
     ) -> Result<Self::Attribute, Error> {
-        let static_attr = attributes::STATIC_ATTR_LOOKUP.get(&unicase::UniCase::ascii(name));
-
-        if let Some(attr) = static_attr {
-            Ok(attr.clone())
-        } else {
-            // TODO: Dataset
-            Err(Error::InvalidAttribute)
-        }
+        attributes::STATIC_ATTR_LOOKUP
+            .get(&unicase::UniCase::ascii(name))
+            .map(Clone::clone)
+            .ok_or_else(|| Error::InvalidAttribute)
+            .or_else(|_| {
+                self.parse_data_attribute(name)
+                    .map(|attr| attributes::HtmlAttr::Dataset(Box::new(attr)))
+            })
     }
 }
 
@@ -177,7 +183,7 @@ mod tests {
             let expected = expected.expect("Expected no match, but there was a match");
             assert_eq!(attribute.local_name(), expected.0);
 
-            assert_eq!(attribute.property(), expected.1);
+            assert_eq!(attribute.property_name(), expected.1);
 
             let attr_by_prop = html5::HTML5_NS
                 .typed_attribute_by_property(expected.1)

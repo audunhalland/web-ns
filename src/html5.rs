@@ -17,6 +17,7 @@ pub mod tags {
 pub mod attributes {
     //! Attribute definitions for HTML5
     include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
+    include!(concat!(env!("OUT_DIR"), "/codegen_attr_html_enums.rs"));
 }
 
 /// A [doml::Namespace] implementation for HTML5.
@@ -26,6 +27,17 @@ pub struct Html5Namespace(Private);
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
 impl Html5Namespace {
+    pub fn attribute_enum_by_local_name(&self, name: &str) -> Result<attributes::HtmlAttr, Error> {
+        let static_attr = attributes::STATIC_ATTR_LOOKUP.get(&unicase::UniCase::ascii(name));
+
+        if let Some(attr) = static_attr {
+            Ok(attr.clone())
+        } else {
+            // TODO: Dataset
+            Err(Error::InvalidAttribute)
+        }
+    }
+
     /// Look up an attribute by its DOM JavaScript property name.
     pub fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
         attributes::__ATTR_LOOKUP_TABLES

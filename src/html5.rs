@@ -27,8 +27,19 @@ pub struct Html5Namespace(Private);
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
 impl Html5Namespace {
-    pub fn attribute_enum_by_local_name(&self, name: &str) -> Result<attributes::HtmlAttr, Error> {
-        let static_attr = attributes::STATIC_ATTR_LOOKUP.get(&unicase::UniCase::ascii(name));
+    /// Look up an attribute by its DOM JavaScript property name.
+    pub fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
+        attributes::__ATTR_LOOKUP_TABLES
+            .attribute_by_property_name(property_name)
+            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
+            .or_else(|_| self.parse_data_property(property_name))
+    }
+
+    pub fn typed_attribute_by_property(
+        &self,
+        property_name: &str,
+    ) -> Result<attributes::HtmlAttr, Error> {
+        let static_attr = attributes::STATIC_PROPERTY_LOOKUP.get(property_name);
 
         if let Some(attr) = static_attr {
             Ok(attr.clone())
@@ -36,14 +47,6 @@ impl Html5Namespace {
             // TODO: Dataset
             Err(Error::InvalidAttribute)
         }
-    }
-
-    /// Look up an attribute by its DOM JavaScript property name.
-    pub fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
-        attributes::__ATTR_LOOKUP_TABLES
-            .attribute_by_property_name(property_name)
-            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
-            .or_else(|_| self.parse_data_property(property_name))
     }
 
     fn parse_data_attribute(&self, name: &str) -> Result<Symbol, Error> {
@@ -100,6 +103,34 @@ impl super::WebNamespace for Html5Namespace {
     }
 }
 
+impl super::TypedWebNamespace for Html5Namespace {
+    type Element = (); // TODO
+    type Attribute = attributes::HtmlAttr;
+
+    fn name(&self) -> &'static str {
+        "html5"
+    }
+
+    fn typed_element_by_local_name(&self, _: &str) -> Result<Self::Element, Error> {
+        Ok(())
+    }
+
+    fn typed_attribute_by_local_name(
+        &self,
+        _: &Self::Element,
+        name: &str,
+    ) -> Result<Self::Attribute, Error> {
+        let static_attr = attributes::STATIC_ATTR_LOOKUP.get(&unicase::UniCase::ascii(name));
+
+        if let Some(attr) = static_attr {
+            Ok(attr.clone())
+        } else {
+            // TODO: Dataset
+            Err(Error::InvalidAttribute)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::WebNamespace;
@@ -132,6 +163,27 @@ mod tests {
 
             let info = attr::AttributeInfo::try_from(&attr_by_prop).unwrap();
             assert_eq!(info.property().map(ToString::to_string), property);
+        } else {
+            assert!(expected.is_none());
+        }
+
+        test_typed_html_attribute(name, expected);
+    }
+
+    fn test_typed_html_attribute(name: &str, expected: Option<(&str, &str)>) {
+        let element = ();
+
+        if let Ok(attribute) = html5::HTML5_NS.typed_attribute_by_local_name(&element, name) {
+            let expected = expected.expect("Expected no match, but there was a match");
+            assert_eq!(attribute.local_name(), expected.0);
+
+            assert_eq!(attribute.property(), expected.1);
+
+            let attr_by_prop = html5::HTML5_NS
+                .typed_attribute_by_property(expected.1)
+                .unwrap();
+
+            assert_eq!(attr_by_prop.local_name(), expected.0);
         } else {
             assert!(expected.is_none());
         }

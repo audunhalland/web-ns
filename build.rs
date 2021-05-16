@@ -233,7 +233,7 @@ mod enums {
 
         // local_name
         {
-            writeln!(f, "    fn local_name(&self) -> &str {{")?;
+            writeln!(f, "    pub fn local_name(&self) -> &str {{")?;
             writeln!(f, "        match self {{")?;
             for def in defs.iter() {
                 match &def.kind {
@@ -256,7 +256,7 @@ mod enums {
 
         // property
         {
-            writeln!(f, "    fn static_property(&self) -> &str {{")?;
+            writeln!(f, "    pub fn property(&self) -> &str {{")?;
             writeln!(f, "        match self {{")?;
             for def in defs.iter() {
                 match &def.kind {
@@ -328,7 +328,7 @@ mod enums {
     ) -> std::io::Result<()> {
         let static_defs: Vec<_> = defs.iter().filter_map(AttributeDef::static_kind).collect();
 
-        // Attribute name map:
+        // Property name map:
         {
             let def_keys: Vec<_> = static_defs
                 .iter()
@@ -336,25 +336,21 @@ mod enums {
                     (
                         def,
                         PhfKeyRef {
-                            key: StaticUniCase::new(def.prop),
-                            ref_expr: format!(
-                                "StaticUniCase::new(properties::{})",
-                                def.pub_const_ident
-                            ),
+                            key: def.prop,
+                            ref_expr: format!("properties::{}", def.pub_const_ident),
                         },
                     )
                 })
                 .collect();
 
-            let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> =
-                phf_codegen::Map::new();
+            let mut map_codegen: phf_codegen::Map<PhfKeyRef<&str>> = phf_codegen::Map::new();
             for (def, key) in def_keys {
                 map_codegen.entry(key, &format!("{}::{}", enum_ident, def.enum_ident));
             }
 
             writeln!(
                 f,
-                "pub(crate) const STATIC_PROPERTY_LOOKUP: phf::Map<StaticUniCase, {}> = {};",
+                "pub(crate) const STATIC_PROPERTY_LOOKUP: phf::Map<&str, {}> = {};",
                 enum_ident,
                 map_codegen.build()
             )?;

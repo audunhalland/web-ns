@@ -62,6 +62,22 @@ pub trait WebNamespace {
     fn attribute_by_local_name(&self, element: &Symbol, local_name: &str) -> Result<Symbol, Error>;
 }
 
+// TODO: Choose a better name? Get rid of untyped Namespace
+pub trait TypedWebNamespace {
+    type Element;
+    type Attribute;
+
+    fn name(&self) -> &'static str;
+
+    fn typed_element_by_local_name(&self, local_name: &str) -> Result<Self::Element, Error>;
+
+    fn typed_attribute_by_local_name(
+        &self,
+        element: &Self::Element,
+        local_name: &str,
+    ) -> Result<Self::Attribute, Error>;
+}
+
 #[derive(Debug)]
 pub enum Error {
     InvalidAttribute,

@@ -13,10 +13,16 @@ mod value;
 
 use crate::Error;
 
+///
+/// Basic trait for attributes.
+///
 pub trait Attribute {
     fn attr_type(&self) -> attr_type::AttrType;
 }
 
+///
+/// Trait for deserialization of attribute values.
+///
 pub trait DeserializeAttributeValue {
     fn deserialize_attribute_value<S>(&self, input: Option<S>) -> Result<AttributeValue, Error>
     where
@@ -35,6 +41,9 @@ where
     }
 }
 
+///
+/// Trait for serialization of attribute values.
+///
 pub trait SerializeAttributeValue {
     fn serialize_attribute_value(&self, value: &AttributeValue) -> SerializedAttributeValue;
 }

@@ -4,6 +4,7 @@ use crate::attr::attr_type::flags;
 use crate::attr::attr_type::AttrType;
 use crate::Error;
 
+use super::web;
 use super::*;
 
 mod tags {
@@ -16,8 +17,8 @@ mod attributes {
     include!(concat!(env!("OUT_DIR"), "/codegen_attr_html_enums.rs"));
 }
 
-pub use tags::HtmlTag;
 pub use attributes::HtmlAttr;
+pub use tags::HtmlTag;
 
 /// A [web_ns::WebNamespace] implementation for HTML5.
 pub struct Html5Namespace(Private);
@@ -77,36 +78,54 @@ impl Html5Namespace {
     }
 }
 
-impl super::WebNamespace for Html5Namespace {
-    fn name(&self) -> &'static str {
-        "html5"
+impl super::TypedNamespace for Html5Namespace {
+    type Tag = tags::HtmlTag;
+    type Attribute = attributes::HtmlAttr;
+
+    fn typed_tag_by_local_name(&self, local_name: &str) -> Result<Self::Tag, Error> {
+        tags::STATIC_LOCAL_NAME_LOOKUP
+            .get(&unicase::UniCase::ascii(local_name))
+            .map(Clone::clone)
+            .ok_or_else(|| Error::InvalidAttribute)
+    }
+
+    fn typed_attribute_by_local_name(
+        &self,
+        _: &Self::Tag,
+        local_name: &str,
+    ) -> Result<Self::Attribute, Error> {
+        attributes::STATIC_LOCAL_NAME_LOOKUP
+            .get(&unicase::UniCase::ascii(local_name))
+            .map(Clone::clone)
+            .ok_or_else(|| Error::InvalidAttribute)
+            .or_else(|_| {
+                self.parse_data_attribute(local_name)
+                    .map(|attr| attributes::HtmlAttr::Dataset(Box::new(attr)))
+            })
     }
 }
 
-impl super::TypedWebNamespace for Html5Namespace {
-    type Element = tags::HtmlTag;
-    type Attribute = attributes::HtmlAttr;
+impl super::web::WebNamespace for Html5Namespace {
+    fn name(&self) -> &'static str {
+        "html5"
+    }
 
-    fn element_by_local_name(&self, name: &str) -> Result<Self::Element, Error> {
-        tags::STATIC_LOCAL_NAME_LOOKUP
-            .get(&unicase::UniCase::ascii(name))
-            .map(Clone::clone)
-            .ok_or_else(|| Error::InvalidAttribute)
+    fn tag_by_local_name(&self, name: &str) -> Result<web::Tag, Error> {
+        // TODO: HTML should support multiple "child" namespaces, notably SVG
+        self.typed_tag_by_local_name(name)
+            .map(|tag| super::web::Tag::Html5(tag))
     }
 
     fn attribute_by_local_name(
         &self,
-        _: &Self::Element,
-        name: &str,
-    ) -> Result<Self::Attribute, Error> {
-        attributes::STATIC_LOCAL_NAME_LOOKUP
-            .get(&unicase::UniCase::ascii(name))
-            .map(Clone::clone)
-            .ok_or_else(|| Error::InvalidAttribute)
-            .or_else(|_| {
-                self.parse_data_attribute(name)
-                    .map(|attr| attributes::HtmlAttr::Dataset(Box::new(attr)))
-            })
+        tag: &web::Tag,
+        local_name: &str,
+    ) -> Result<web::Attr, Error> {
+        match tag {
+            web::Tag::Html5(html_tag) => self
+                .typed_attribute_by_local_name(html_tag, local_name)
+                .map(|attr| super::web::Attr::Html5(attr)),
+        }
     }
 }
 
@@ -124,15 +143,13 @@ mod tests {
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
         let element = tags::HtmlTag::Div;
 
-        if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
+        if let Ok(attribute) = html5::HTML5_NS.typed_attribute_by_local_name(&element, name) {
             let expected = expected.expect("Expected no match, but there was a match");
             assert_eq!(attribute.local_name(), expected.0);
 
             assert_eq!(attribute.property_name(), expected.1);
 
-            let attr_by_prop = html5::HTML5_NS
-                .attribute_by_property(expected.1)
-                .unwrap();
+            let attr_by_prop = html5::HTML5_NS.attribute_by_property(expected.1).unwrap();
 
             assert_eq!(attr_by_prop.local_name(), expected.0);
         } else {

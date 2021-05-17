@@ -13,6 +13,7 @@
 #![forbid(unsafe_code)]
 
 pub mod attr;
+pub mod web;
 
 pub mod html5;
 
@@ -20,47 +21,52 @@ mod static_unicase;
 
 pub use attr::*;
 
-#[derive(Clone, Copy, Eq, PartialEq)]
-enum WebNS {
-    HTML5,
-}
-
-impl WebNS {
-    pub fn web_namespace(&self) -> &'static dyn WebNamespace {
-        match self {
-            Self::HTML5 => &html5::HTML5_NS,
-        }
-    }
-}
-
 struct Private;
 
+///
+/// Trait for anything that has a local/unqualified name.
+///
 pub trait LocalName {
     fn local_name(&self) -> &str;
 }
 
+///
+/// Trait for anything that has a JS property name.
+///
 pub trait PropertyName {
     fn property_name(&self) -> &str;
 }
 
 ///
-/// A web namespace.
+/// Trait for accessing "voidness" of tag names.
+/// a tag being "Void" means that it must be self closing:
+/// `<img />`
+/// vs. non-void that cannot be self-closing:
+/// `<b></b>`
 ///
-pub trait WebNamespace {
-    /// The name of this webspace.
-    fn name(&self) -> &'static str;
+pub trait IsVoid {
+    fn is_void(&self) -> bool;
 }
 
-// TODO: Choose a better name? Get rid of untyped Namespace
-pub trait TypedWebNamespace: WebNamespace {
-    type Element;
+///
+/// A typed namespace, with a complete type system for tags an attributes within the namespace.
+///
+pub trait TypedNamespace {
+    type Tag;
     type Attribute;
 
-    fn element_by_local_name(&self, local_name: &str) -> Result<Self::Element, Error>;
+    ///
+    /// Look up a tag name within this namespace.
+    /// Tag names correspond to elements in a DOM model.
+    ///
+    fn typed_tag_by_local_name(&self, local_name: &str) -> Result<Self::Tag, Error>;
 
-    fn attribute_by_local_name(
+    ///
+    /// Look up an attribute by its local name.
+    ///
+    fn typed_attribute_by_local_name(
         &self,
-        element: &Self::Element,
+        tag: &Self::Tag,
         local_name: &str,
     ) -> Result<Self::Attribute, Error>;
 }
@@ -69,4 +75,5 @@ pub trait TypedWebNamespace: WebNamespace {
 pub enum Error {
     InvalidAttribute,
     InvalidAttributeValue,
+    NamespaceMismatch,
 }

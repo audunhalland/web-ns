@@ -2,25 +2,12 @@
 //! Dynamic, object-safe web namespace.
 //!
 
-use super::Error;
-
 ///
 /// An object-safe web namespace.
 ///
-pub trait WebNamespace {
+pub trait WebNamespace: crate::TagByLocalName<Tag> {
     /// The name of this webspace.
     fn name(&self) -> &'static str;
-
-    ///
-    /// Look up a tag name within this namespace.
-    /// Tag names correspond to elements in a DOM model.
-    ///
-    fn tag_by_local_name(&self, local_name: &str) -> Result<Tag, Error>;
-
-    ///
-    /// Look up an attribute by its local name.
-    ///
-    fn attribute_by_local_name(&self, tag: &Tag, local_name: &str) -> Result<Attr, Error>;
 }
 
 ///
@@ -50,6 +37,22 @@ impl super::LocalName for Tag {
     fn local_name(&self) -> &str {
         match self {
             Self::Html5(tag) => tag.local_name(),
+        }
+    }
+}
+
+impl super::AttrByLocalName<Attr> for Tag {
+    fn attr_by_local_name(&self, local_name: &str) -> Result<Attr, crate::Error> {
+        match self {
+            Self::Html5(tag) => tag.attr_by_local_name(local_name),
+        }
+    }
+}
+
+impl super::AttrByProperty<Attr> for Tag {
+    fn attr_by_property(&self, property: &str) -> Result<Attr, crate::Error> {
+        match self {
+            Self::Html5(tag) => tag.attr_by_property(property),
         }
     }
 }

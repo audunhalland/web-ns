@@ -48,27 +48,16 @@ pub trait IsVoid {
     fn is_void(&self) -> bool;
 }
 
-///
-/// A typed namespace, with a complete type system for tags an attributes within the namespace.
-///
-pub trait TypedNamespace {
-    type Tag;
-    type Attribute;
+pub trait TagByLocalName<T> {
+    fn tag_by_local_name(&self, local_name: &str) -> Result<T, Error>;
+}
 
-    ///
-    /// Look up a tag name within this namespace.
-    /// Tag names correspond to elements in a DOM model.
-    ///
-    fn typed_tag_by_local_name(&self, local_name: &str) -> Result<Self::Tag, Error>;
+pub trait AttrByLocalName<A> {
+    fn attr_by_local_name(&self, local_name: &str) -> Result<A, Error>;
+}
 
-    ///
-    /// Look up an attribute by its local name.
-    ///
-    fn typed_attribute_by_local_name(
-        &self,
-        tag: &Self::Tag,
-        local_name: &str,
-    ) -> Result<Self::Attribute, Error>;
+pub trait AttrByProperty<A> {
+    fn attr_by_property(&self, property: &str) -> Result<A, Error>;
 }
 
 #[derive(Debug)]

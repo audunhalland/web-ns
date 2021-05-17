@@ -57,6 +57,14 @@ impl super::AttrByProperty<Attr> for Tag {
     }
 }
 
+impl super::IsVoid for Tag {
+    fn is_void(&self) -> bool {
+        match self {
+            Self::Html5(tag) => tag.is_void(),
+        }
+    }
+}
+
 ///
 /// A attribute with runtime polymorphism, supporting potentially different namespaces.
 ///

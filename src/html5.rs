@@ -25,19 +25,9 @@ pub struct Html5Namespace(Private);
 /// The global [Html5Namespace] instance.
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
-impl Html5Namespace {
-    pub fn typed_attribute_by_property(
-        &self,
-        property_name: &str,
-    ) -> Result<attributes::HtmlAttr, Error> {
-        attributes::STATIC_PROPERTY_LOOKUP
-            .get(property_name)
-            .map(Clone::clone)
-            .ok_or_else(|| Error::InvalidAttribute)
-            .or_else(|_| {
-                parse_data_property(property_name)
-                    .map(|data| attributes::HtmlAttr::Dataset(Box::new(data)))
-            })
+impl super::web::WebNamespace for Html5Namespace {
+    fn name(&self) -> &'static str {
+        "html5"
     }
 }
 
@@ -130,12 +120,6 @@ impl crate::AttrByProperty<crate::web::Attr> for tags::HtmlTag {
     fn attr_by_property(&self, property: &str) -> Result<crate::web::Attr, Error> {
         self.attr_by_property(property)
             .map(|attr| super::web::Attr::Html5(attr))
-    }
-}
-
-impl super::web::WebNamespace for Html5Namespace {
-    fn name(&self) -> &'static str {
-        "html5"
     }
 }
 

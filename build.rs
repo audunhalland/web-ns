@@ -350,6 +350,29 @@ mod enums {
             writeln!(f, "}}")?;
         }
 
+        // IsVoid
+        if entity_kind == EntityKind::Tag {
+            writeln!(f, "impl crate::IsVoid for {} {{", enum_ident)?;
+            writeln!(f, "    fn is_void(&self) -> bool {{")?;
+            writeln!(f, "        match self {{")?;
+            for def in defs.iter() {
+                match &def.kind {
+                    DefKind::Static(static_kind) => {
+                        writeln!(
+                            f,
+                            r#"            Self::{ident} => {is_void},"#,
+                            ident = static_kind.variant_ident,
+                            is_void = static_kind.is_void
+                        )?;
+                    }
+                    DefKind::DataAttr => {}
+                }
+            }
+            writeln!(f, "        }}")?;
+            writeln!(f, "    }}")?;
+            writeln!(f, "}}")?;
+        }
+
         Ok(())
     }
 

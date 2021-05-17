@@ -46,6 +46,14 @@ impl OriginWebNamespace for Tag {
     }
 }
 
+impl super::LocalName for Tag {
+    fn local_name(&self) -> &str {
+        match self {
+            Self::Html5(tag) => tag.local_name(),
+        }
+    }
+}
+
 ///
 /// A attribute with runtime polymorphism, supporting potentially different namespaces.
 ///
@@ -58,6 +66,22 @@ impl OriginWebNamespace for Attr {
     fn origin_web_namespace(&self) -> &'static dyn WebNamespace {
         match self {
             Self::Html5(_) => &super::html5::HTML5_NS,
+        }
+    }
+}
+
+impl super::LocalName for Attr {
+    fn local_name(&self) -> &str {
+        match self {
+            Self::Html5(attr) => attr.local_name(),
+        }
+    }
+}
+
+impl super::PropertyName for Attr {
+    fn property_name(&self) -> &str {
+        match self {
+            Self::Html5(attr) => attr.property_name(),
         }
     }
 }

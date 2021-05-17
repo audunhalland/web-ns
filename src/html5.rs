@@ -8,18 +8,18 @@ use super::*;
 
 mod tags {
     //! Tag definitions for HTML5
-    include!(concat!(env!("OUT_DIR"), "/codegen_tag_html_enums.rs"));
+    include!(concat!(env!("OUT_DIR"), "/codegen_html_tag_enum.rs"));
 }
 
 mod attributes {
     //! Attribute definitions for HTML5
-    include!(concat!(env!("OUT_DIR"), "/codegen_attr_html_enums.rs"));
+    include!(concat!(env!("OUT_DIR"), "/codegen_html_attr_enum.rs"));
 }
 
 pub use attributes::HtmlAttr;
 pub use tags::HtmlTag;
 
-/// A [web_ns::WebNamespace] implementation for HTML5.
+/// A [web::WebNamespace] implementation for HTML5.
 pub struct Html5Namespace(Private);
 
 /// The global [Html5Namespace] instance.

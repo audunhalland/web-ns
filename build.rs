@@ -11,8 +11,14 @@ mod static_unicase;
 #[path = "src/attr/attr_type.rs"]
 mod attr_type;
 
+#[path = "src/defs/ns_defs.rs"]
+mod ns_defs;
+
 #[path = "src/defs/html5_defs.rs"]
 mod html5_defs;
+
+#[path = "src/defs/svg_defs.rs"]
+mod svg_defs;
 
 use static_unicase::StaticUniCase;
 
@@ -20,20 +26,10 @@ fn main() {
     codegen().unwrap();
 }
 
-#[derive(Eq, PartialEq)]
-struct NS {
-    name: &'static str,
-    path: &'static str,
-}
-
-const HTML5: NS = NS {
-    name: "HTML5",
-    path: "crate::html5",
-};
-
 #[derive(Clone)]
 struct Def {
-    ns: &'static NS,
+    src_ns: &'static ns_defs::NS,
+    target_ns: &'static ns_defs::NS,
     kind: DefKind,
 }
 
@@ -88,19 +84,14 @@ impl EntityKind {
 fn codegen() -> std::io::Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    let defs = defs();
-
     {
-        let tags: Vec<_> = defs
-            .iter()
-            .filter(|def| def.ns == &HTML5 && def.entity_kind() == EntityKind::Tag)
-            .cloned()
-            .collect();
-
-        let mut html_enum_file = BufWriter::new(File::create(
-            &Path::new(&out_dir).join("codegen_tag_html_enums.rs"),
+        let tags = filtered_defs(|def| {
+            def.src_ns == &ns_defs::HTML5 && def.entity_kind() == EntityKind::Tag
+        });
+        let mut w = BufWriter::new(File::create(
+            &Path::new(&out_dir).join("codegen_html_tag_enum.rs"),
         )?);
-        let f = &mut html_enum_file;
+        let f = &mut w;
 
         let enum_ident = "HtmlTag";
         writeln!(f, "use crate::static_unicase::*;")?;
@@ -110,18 +101,49 @@ fn codegen() -> std::io::Result<()> {
     }
 
     {
-        let attrs: Vec<_> = defs
-            .iter()
-            .filter(|def| def.ns == &HTML5 && def.entity_kind() == EntityKind::Attribute)
-            .cloned()
-            .collect();
-
-        let mut html_enum_file = BufWriter::new(File::create(
-            &Path::new(&out_dir).join("codegen_attr_html_enums.rs"),
+        let attrs = filtered_defs(|def| {
+            def.src_ns == &ns_defs::HTML5 && def.entity_kind() == EntityKind::Attribute
+        });
+        let mut w = BufWriter::new(File::create(
+            &Path::new(&out_dir).join("codegen_html_attr_enum.rs"),
         )?);
-        let f = &mut html_enum_file;
+        let f = &mut w;
 
         let enum_ident = "HtmlAttr";
+        writeln!(f, "use crate::static_unicase::*;")?;
+        enums::codegen_enum(enum_ident, EntityKind::Attribute, &attrs, f)?;
+        enums::codegen_local_names(&attrs, f)?;
+        enums::codegen_properties(&attrs, f)?;
+        enums::codegen_local_name_lookup(enum_ident, &attrs, f)?;
+        enums::codegen_property_lookup(enum_ident, &attrs, f)?;
+    }
+
+    {
+        let tags = filtered_defs(|def| {
+            def.src_ns == &ns_defs::SVG && def.entity_kind() == EntityKind::Tag
+        });
+        let mut w = BufWriter::new(File::create(
+            &Path::new(&out_dir).join("codegen_svg_tag_enum.rs"),
+        )?);
+        let f = &mut w;
+
+        let enum_ident = "SvgTag";
+        writeln!(f, "use crate::static_unicase::*;")?;
+        enums::codegen_enum(enum_ident, EntityKind::Tag, &tags, f)?;
+        enums::codegen_local_names(&tags, f)?;
+        enums::codegen_local_name_lookup(enum_ident, &tags, f)?;
+    }
+
+    {
+        let attrs = filtered_defs(|def| {
+            def.src_ns == &ns_defs::SVG && def.entity_kind() == EntityKind::Attribute
+        });
+        let mut w = BufWriter::new(File::create(
+            &Path::new(&out_dir).join("codegen_svg_attr_enum.rs"),
+        )?);
+        let f = &mut w;
+
+        let enum_ident = "SvgAttr";
         writeln!(f, "use crate::static_unicase::*;")?;
         enums::codegen_enum(enum_ident, EntityKind::Attribute, &attrs, f)?;
         enums::codegen_local_names(&attrs, f)?;
@@ -133,15 +155,20 @@ fn codegen() -> std::io::Result<()> {
     Ok(())
 }
 
+fn filtered_defs(filter_fn: impl Fn(&&Def) -> bool) -> Vec<Def> {
+    defs().iter().filter(filter_fn).cloned().collect()
+}
+
 fn defs() -> Vec<Def> {
     let mut defs = vec![];
 
-    for (tag, is_void) in html5_defs::tags::DEFS {
+    for (tag, is_void, target_ns) in html5_defs::tags::DEFS {
         defs.push(Def {
-            ns: &HTML5,
+            src_ns: &ns_defs::HTML5,
+            target_ns,
             kind: DefKind::Static(StaticDefKind {
                 entity_kind: EntityKind::Tag,
-                const_ident: format!("{}", tag.replace('-', "_").to_uppercase()),
+                const_ident: make_const_ident(tag),
                 variant_ident: make_enum_ident(tag),
                 local_name: tag,
                 prop: "",
@@ -153,10 +180,11 @@ fn defs() -> Vec<Def> {
 
     for (attr, prop, flags) in html5_defs::attrs::DEFS {
         defs.push(Def {
-            ns: &HTML5,
+            src_ns: &ns_defs::HTML5,
+            target_ns: &ns_defs::HTML5,
             kind: DefKind::Static(StaticDefKind {
                 entity_kind: EntityKind::Attribute,
-                const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
+                const_ident: make_const_ident(attr),
                 variant_ident: make_enum_ident(attr),
                 local_name: attr,
                 prop,
@@ -167,11 +195,48 @@ fn defs() -> Vec<Def> {
     }
 
     defs.push(Def {
-        ns: &HTML5,
+        src_ns: &ns_defs::HTML5,
+        target_ns: &ns_defs::HTML5,
         kind: DefKind::DataAttr,
     });
 
+    for tag in svg_defs::tags::DEFS {
+        defs.push(Def {
+            src_ns: &ns_defs::SVG,
+            target_ns: &ns_defs::SVG,
+            kind: DefKind::Static(StaticDefKind {
+                entity_kind: EntityKind::Tag,
+                const_ident: make_const_ident(tag),
+                variant_ident: make_enum_ident(tag),
+                local_name: tag,
+                prop: "",
+                flags: 0,
+                is_void: false,
+            }),
+        });
+    }
+
+    for (attr, prop, flags) in svg_defs::attrs::DEFS {
+        defs.push(Def {
+            src_ns: &ns_defs::SVG,
+            target_ns: &ns_defs::SVG,
+            kind: DefKind::Static(StaticDefKind {
+                entity_kind: EntityKind::Attribute,
+                const_ident: make_const_ident(attr),
+                variant_ident: make_enum_ident(attr),
+                local_name: attr,
+                prop,
+                flags: *flags,
+                is_void: false,
+            }),
+        });
+    }
+
     defs
+}
+
+fn make_const_ident(input: &str) -> String {
+    input.replace('-', "_").to_uppercase()
 }
 
 fn make_enum_ident(input: &str) -> String {
@@ -249,7 +314,7 @@ mod enums {
                     writeln!(
                         f,
                         "    /// The {} '{}' {}",
-                        def.ns.name,
+                        def.src_ns.name,
                         static_kind.local_name,
                         entity_kind.name()
                     )?;
@@ -259,7 +324,7 @@ mod enums {
                     writeln!(
                         f,
                         "    /// Some {} 'data-' {}",
-                        def.ns.name,
+                        def.src_ns.name,
                         entity_kind.name()
                     )?;
                     writeln!(f, "    Dataset(Box<crate::attr::dataset::DataAttr>),")?;

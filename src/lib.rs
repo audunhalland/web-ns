@@ -27,6 +27,7 @@ pub mod attr;
 pub mod web;
 
 pub mod html5;
+pub mod svg;
 
 mod static_unicase;
 

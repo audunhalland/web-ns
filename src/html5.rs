@@ -6,17 +6,20 @@ use crate::Error;
 
 use super::*;
 
-pub mod tags {
+mod tags {
     //! Tag definitions for HTML5
     include!(concat!(env!("OUT_DIR"), "/codegen_tag_html_enums.rs"));
 }
 
-pub mod attributes {
+mod attributes {
     //! Attribute definitions for HTML5
     include!(concat!(env!("OUT_DIR"), "/codegen_attr_html_enums.rs"));
 }
 
-/// A [doml::Namespace] implementation for HTML5.
+pub use tags::HtmlTag;
+pub use attributes::HtmlAttr;
+
+/// A [web_ns::WebNamespace] implementation for HTML5.
 pub struct Html5Namespace(Private);
 
 /// The global [Html5Namespace] instance.

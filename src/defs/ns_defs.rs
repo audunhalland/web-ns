@@ -5,11 +5,11 @@ pub struct NS {
 }
 
 pub const HTML5: NS = NS {
-    name: "HTML5",
+    name: "HTML5_NS",
     path: "crate::html5",
 };
 
 pub const SVG: NS = NS {
-    name: "svg",
+    name: "SVG_NS",
     path: "crate::svg",
 };

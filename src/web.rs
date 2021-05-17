@@ -18,6 +18,28 @@ pub trait OriginWebNamespace {
 }
 
 ///
+/// Trait for accessing the target namespace of some entity.
+///
+pub trait TargetWebNamespace {
+    ///
+    /// Access the target namespace of an entity. A web entity may "change" the namespace
+    /// when introduced.
+    ///
+    /// Example:
+    ///
+    /// ```
+    /// use web_ns::*;
+    /// use web_ns::web::*;
+    ///
+    /// let svg = html5::HtmlAttr::Svg;
+    /// assert_eq!(svg.origin_web_namespace().name(), "html5");
+    /// assert_eq!(svg.target_web_namespace().name(), "svg");
+    /// ```
+    ///
+    fn target_web_namespace(&self) -> &'static dyn WebNamespace;
+}
+
+///
 /// A tag with runtime polymorphism, supporting potentially different namespaces.
 ///
 #[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
@@ -31,6 +53,15 @@ impl OriginWebNamespace for Tag {
         match self {
             Self::Html5(_) => &super::html5::HTML5_NS,
             Self::Svg(_) => &super::html5::HTML5_NS,
+        }
+    }
+}
+
+impl TargetWebNamespace for Tag {
+    fn target_web_namespace(&self) -> &'static dyn WebNamespace {
+        match self {
+            Self::Html5(tag) => tag.target_web_namespace(),
+            Self::Svg(tag) => tag.target_web_namespace(),
         }
     }
 }

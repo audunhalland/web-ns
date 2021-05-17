@@ -6,6 +6,7 @@
 //! use web_ns::*;
 //!
 //! let element = html5::HTML5_NS.element_by_local_name("div").unwrap();
+//! assert_eq!(element, html5::tags::HtmlTag::Div);
 //! ```
 //!
 
@@ -16,13 +17,8 @@ pub mod attr;
 pub mod html5;
 
 mod static_unicase;
-mod static_web_tag;
-mod symbols;
 
 pub use attr::*;
-
-// re-export dyn_symbol
-pub use dyn_symbol::Symbol;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WebNS {
@@ -60,9 +56,9 @@ pub trait TypedWebNamespace: WebNamespace {
     type Element;
     type Attribute;
 
-    fn typed_element_by_local_name(&self, local_name: &str) -> Result<Self::Element, Error>;
+    fn element_by_local_name(&self, local_name: &str) -> Result<Self::Element, Error>;
 
-    fn typed_attribute_by_local_name(
+    fn attribute_by_local_name(
         &self,
         element: &Self::Element,
         local_name: &str,

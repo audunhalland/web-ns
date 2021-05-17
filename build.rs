@@ -20,207 +20,251 @@ fn main() {
     codegen().unwrap();
 }
 
-struct NamespaceDesc {
+#[derive(Eq, PartialEq)]
+struct NS {
     name: &'static str,
     path: &'static str,
 }
 
-struct TagDef {
-    web_ns: &'static str,
-    static_id: usize,
-    pub_const_ident: String,
-    tag: &'static str,
-    is_void: bool,
+const HTML5: NS = NS {
+    name: "HTML5",
+    path: "crate::html5",
+};
+
+#[derive(Clone)]
+struct Def {
+    ns: &'static NS,
+    kind: DefKind,
 }
 
-struct AttributeDef {
-    web_ns: &'static str,
-    kind: AttributeDefKind,
-}
-
-impl AttributeDef {
-    fn static_kind(&self) -> Option<&StaticAttributeDefKind> {
+impl Def {
+    fn static_kind(&self) -> Option<&StaticDefKind> {
         match &self.kind {
-            AttributeDefKind::Static(kind) => Some(kind),
+            DefKind::Static(kind) => Some(kind),
             _ => None,
+        }
+    }
+
+    fn entity_kind(&self) -> EntityKind {
+        match &self.kind {
+            DefKind::Static(kind) => kind.entity_kind.clone(),
+            DefKind::DataAttr => EntityKind::Attribute,
         }
     }
 }
 
-enum AttributeDefKind {
-    Static(StaticAttributeDefKind),
-    Data,
+#[derive(Clone)]
+enum DefKind {
+    Static(StaticDefKind),
+    DataAttr,
 }
 
-struct StaticAttributeDefKind {
+#[derive(Clone)]
+struct StaticDefKind {
     static_id: usize,
+    entity_kind: EntityKind,
     pub_const_ident: String,
     enum_ident: String,
-    attr: &'static str,
+    local_name: &'static str,
     prop: &'static str,
     flags: u32,
+    is_void: bool,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+enum EntityKind {
+    Tag,
+    Attribute,
+}
+
+impl EntityKind {
+    fn name(&self) -> &str {
+        match self {
+            Self::Tag => "tag",
+            Self::Attribute => "attribute",
+        }
+    }
 }
 
 fn codegen() -> std::io::Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    let tag_defs = tag_defs();
-    let attribute_defs = attribute_defs();
-
-    symbols::codegen_static_tag_symbols(
-        &tag_defs,
-        Path::new(&out_dir).join("codegen_tag_symbols.rs"),
-    )?;
+    let defs = defs();
 
     {
+        let tags: Vec<_> = defs
+            .iter()
+            .filter(|def| def.ns == &HTML5 && def.entity_kind() == EntityKind::Tag)
+            .cloned()
+            .collect();
+
+        let mut html_enum_file = BufWriter::new(File::create(
+            &Path::new(&out_dir).join("codegen_tag_html_enums.rs"),
+        )?);
+        let f = &mut html_enum_file;
+
+        let enum_ident = "HtmlTag";
+        writeln!(f, "use crate::static_unicase::*;")?;
+        enums::codegen_enum(enum_ident, EntityKind::Tag, &tags, f)?;
+        enums::codegen_local_names(&tags, f)?;
+        enums::codegen_local_name_lookup(enum_ident, &tags, f)?;
+    }
+
+    {
+        let attrs: Vec<_> = defs
+            .iter()
+            .filter(|def| def.ns == &HTML5 && def.entity_kind() == EntityKind::Attribute)
+            .cloned()
+            .collect();
+
         let mut html_enum_file = BufWriter::new(File::create(
             &Path::new(&out_dir).join("codegen_attr_html_enums.rs"),
         )?);
         let f = &mut html_enum_file;
 
+        let enum_ident = "HtmlAttr";
         writeln!(f, "use crate::static_unicase::*;")?;
-        enums::codegen_static_attribute_enum("HtmlAttr", &attribute_defs, f)?;
-        enums::codegen_static_attribute_names(&attribute_defs, f)?;
-        enums::codegen_static_attribute_properties(&attribute_defs, f)?;
-        enums::codegen_static_attribute_lookup("HtmlAttr", &attribute_defs, f)?;
-        enums::codegen_static_property_lookup("HtmlAttr", &attribute_defs, f)?;
+        enums::codegen_enum(enum_ident, EntityKind::Attribute, &attrs, f)?;
+        enums::codegen_local_names(&attrs, f)?;
+        enums::codegen_properties(&attrs, f)?;
+        enums::codegen_local_name_lookup(enum_ident, &attrs, f)?;
+        enums::codegen_property_lookup(enum_ident, &attrs, f)?;
     }
-
-    symbols::codegen_static_web_tag_ns_lookup_tables(
-        &tag_defs,
-        NamespaceDesc {
-            name: "HTML5",
-            path: "crate::html5",
-        },
-        Path::new(&out_dir).join("codegen_static_html_tags.rs"),
-    )?;
-
-    symbols::codegen_static_web_attr_ns_lookup_tables(
-        &attribute_defs,
-        NamespaceDesc {
-            name: "HTML5",
-            path: "crate::html5",
-        },
-        Path::new(&out_dir).join("codegen_static_html_attrs.rs"),
-    )?;
 
     Ok(())
 }
 
-fn tag_defs() -> Vec<TagDef> {
+fn defs() -> Vec<Def> {
     let mut defs = vec![];
 
     for (tag, is_void) in html5_defs::tags::DEFS {
-        defs.push(TagDef {
-            web_ns: "HTML5",
-            static_id: defs.len(),
-            pub_const_ident: format!("{}", tag.replace('-', "_").to_uppercase()),
-            tag,
-            is_void: is_void.0,
-        });
-    }
-
-    defs
-}
-
-fn attribute_defs() -> Vec<AttributeDef> {
-    let mut defs = vec![];
-
-    for (attr, prop, flags) in html5_defs::attrs::DEFS {
-        defs.push(AttributeDef {
-            web_ns: "HTML5",
-            kind: AttributeDefKind::Static(StaticAttributeDefKind {
+        defs.push(Def {
+            ns: &HTML5,
+            kind: DefKind::Static(StaticDefKind {
                 static_id: defs.len(),
-                pub_const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
-                enum_ident: attr
-                    .split('-')
-                    .map(|seg| {
-                        let mut chars: Vec<char> = seg.chars().collect();
-                        chars[0] = chars[0].to_ascii_uppercase();
-                        chars.into_iter().collect::<String>()
-                    })
-                    .collect::<Vec<_>>()
-                    .join(""),
-                attr,
-                prop,
-                flags: *flags,
+                entity_kind: EntityKind::Tag,
+                pub_const_ident: format!("{}", tag.replace('-', "_").to_uppercase()),
+                enum_ident: make_enum_ident(tag),
+                local_name: tag,
+                prop: "",
+                flags: 0,
+                is_void: is_void.0,
             }),
         });
     }
 
-    defs.push(AttributeDef {
-        web_ns: "HTML5",
-        kind: AttributeDefKind::Data,
+    for (attr, prop, flags) in html5_defs::attrs::DEFS {
+        defs.push(Def {
+            ns: &HTML5,
+            kind: DefKind::Static(StaticDefKind {
+                static_id: defs.len(),
+                entity_kind: EntityKind::Attribute,
+                pub_const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
+                enum_ident: make_enum_ident(attr),
+                local_name: attr,
+                prop,
+                flags: *flags,
+                is_void: false,
+            }),
+        });
+    }
+
+    defs.push(Def {
+        ns: &HTML5,
+        kind: DefKind::DataAttr,
     });
 
     defs
+}
+
+fn make_enum_ident(input: &str) -> String {
+    input
+        .split('-')
+        .map(|seg| {
+            let mut chars: Vec<char> = seg.chars().collect();
+            chars[0] = chars[0].to_ascii_uppercase();
+            chars.into_iter().collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join("")
 }
 
 // New style using enums
 mod enums {
     use super::*;
 
-    pub(crate) fn codegen_static_attribute_names<W: Write>(
-        defs: &[AttributeDef],
+    pub(crate) fn codegen_local_names<W: Write>(
+        defs: &[Def],
         f: &mut BufWriter<W>,
     ) -> std::io::Result<()> {
         writeln!(f, "mod names {{")?;
         for def in defs.iter() {
             match &def.kind {
-                AttributeDefKind::Static(static_kind) => {
+                DefKind::Static(static_kind) => {
                     writeln!(
                         f,
                         "    pub(crate) const {}: &str = \"{}\";",
-                        static_kind.pub_const_ident, static_kind.attr
+                        static_kind.pub_const_ident, static_kind.local_name
                     )?;
                 }
-                AttributeDefKind::Data => {}
+                DefKind::DataAttr => {}
             }
         }
         writeln!(f, "}}")?;
         Ok(())
     }
 
-    pub(crate) fn codegen_static_attribute_properties<W: Write>(
-        defs: &[AttributeDef],
+    pub(crate) fn codegen_properties<W: Write>(
+        defs: &[Def],
         f: &mut BufWriter<W>,
     ) -> std::io::Result<()> {
         writeln!(f, "mod properties {{")?;
         for def in defs.iter() {
             match &def.kind {
-                AttributeDefKind::Static(static_kind) => {
+                DefKind::Static(static_kind) => {
                     writeln!(
                         f,
                         "    pub(crate) const {}: &str = \"{}\";",
                         static_kind.pub_const_ident, static_kind.prop
                     )?;
                 }
-                AttributeDefKind::Data => {}
+                DefKind::DataAttr => {}
             }
         }
         writeln!(f, "}}")?;
         Ok(())
     }
 
-    pub(crate) fn codegen_static_attribute_enum<W: Write>(
+    pub(crate) fn codegen_enum<W: Write>(
         enum_ident: &str,
-        defs: &[AttributeDef],
+        entity_kind: EntityKind,
+        defs: &[Def],
         f: &mut BufWriter<W>,
     ) -> std::io::Result<()> {
-        writeln!(f, "#[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]")?;
+        writeln!(
+            f,
+            "#[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]"
+        )?;
         writeln!(f, "pub enum {} {{", enum_ident)?;
         for def in defs.iter() {
             match &def.kind {
-                AttributeDefKind::Static(static_kind) => {
+                DefKind::Static(static_kind) => {
                     writeln!(
                         f,
-                        "    /// The {} '{}' attribute",
-                        def.web_ns, static_kind.attr
+                        "    /// The {} '{}' {}",
+                        def.ns.name,
+                        static_kind.local_name,
+                        entity_kind.name()
                     )?;
                     writeln!(f, "    {ident},\n", ident = static_kind.enum_ident)?;
                 }
-                AttributeDefKind::Data => {
-                    writeln!(f, "    /// Some {} 'data-' attribute", def.web_ns,)?;
+                DefKind::DataAttr => {
+                    writeln!(
+                        f,
+                        "    /// Some {} 'data-' {}",
+                        def.ns.name,
+                        entity_kind.name()
+                    )?;
                     writeln!(f, "    Dataset(Box<crate::attr::data::DataAttr>),")?;
                 }
             }
@@ -234,7 +278,7 @@ mod enums {
             writeln!(f, "        match self {{")?;
             for def in defs.iter() {
                 match &def.kind {
-                    AttributeDefKind::Static(static_kind) => {
+                    DefKind::Static(static_kind) => {
                         writeln!(
                             f,
                             r#"            Self::{ident} => names::{pub_const_ident},"#,
@@ -242,7 +286,7 @@ mod enums {
                             pub_const_ident = static_kind.pub_const_ident,
                         )?;
                     }
-                    AttributeDefKind::Data => {
+                    DefKind::DataAttr => {
                         writeln!(f, "            Self::Dataset(data) => data.local_name(),")?;
                     }
                 }
@@ -253,7 +297,7 @@ mod enums {
         }
 
         // Attribute
-        {
+        if entity_kind == EntityKind::Attribute {
             writeln!(f, "impl crate::attr::Attribute for {} {{", enum_ident)?;
             writeln!(
                 f,
@@ -263,7 +307,7 @@ mod enums {
             writeln!(f, "        match self {{")?;
             for def in defs.iter() {
                 match &def.kind {
-                    AttributeDefKind::Static(static_kind) => {
+                    DefKind::Static(static_kind) => {
                         writeln!(
                             f,
                             r#"            Self::{ident} => AttrType({flags}),"#,
@@ -271,7 +315,7 @@ mod enums {
                             flags = static_kind.flags
                         )?;
                     }
-                    AttributeDefKind::Data => {
+                    DefKind::DataAttr => {
                         writeln!(f, "            Self::Dataset(data) => data.attr_type(),")?;
                     }
                 }
@@ -282,13 +326,13 @@ mod enums {
         }
 
         // PropertyName
-        {
+        if entity_kind == EntityKind::Attribute {
             writeln!(f, "impl crate::PropertyName for {} {{", enum_ident)?;
             writeln!(f, "    fn property_name(&self) -> &str {{")?;
             writeln!(f, "        match self {{")?;
             for def in defs.iter() {
                 match &def.kind {
-                    AttributeDefKind::Static(static_kind) => {
+                    DefKind::Static(static_kind) => {
                         writeln!(
                             f,
                             r#"            Self::{ident} => properties::{pub_const_ident},"#,
@@ -296,7 +340,7 @@ mod enums {
                             pub_const_ident = static_kind.pub_const_ident,
                         )?;
                     }
-                    AttributeDefKind::Data => {
+                    DefKind::DataAttr => {
                         writeln!(
                             f,
                             r#"            Self::Dataset(data) => data.property_name(),"#
@@ -312,12 +356,12 @@ mod enums {
         Ok(())
     }
 
-    pub(crate) fn codegen_static_attribute_lookup<W: Write>(
+    pub(crate) fn codegen_local_name_lookup<W: Write>(
         enum_ident: &str,
-        defs: &[AttributeDef],
+        defs: &[Def],
         f: &mut BufWriter<W>,
     ) -> std::io::Result<()> {
-        let static_defs: Vec<_> = defs.iter().filter_map(AttributeDef::static_kind).collect();
+        let static_defs: Vec<_> = defs.iter().filter_map(Def::static_kind).collect();
 
         // Attribute name map:
         {
@@ -327,7 +371,7 @@ mod enums {
                     (
                         def,
                         PhfKeyRef {
-                            key: StaticUniCase::new(def.attr),
+                            key: StaticUniCase::new(def.local_name),
                             ref_expr: format!("StaticUniCase::new(names::{})", def.pub_const_ident),
                         },
                     )
@@ -342,7 +386,7 @@ mod enums {
 
             writeln!(
                 f,
-                "pub(crate) const STATIC_ATTR_LOOKUP: phf::Map<StaticUniCase, {}> = {};",
+                "pub(crate) const STATIC_LOCAL_NAME_LOOKUP: phf::Map<StaticUniCase, {}> = {};",
                 enum_ident,
                 map_codegen.build()
             )?;
@@ -351,12 +395,12 @@ mod enums {
         Ok(())
     }
 
-    pub(crate) fn codegen_static_property_lookup<W: Write>(
+    pub(crate) fn codegen_property_lookup<W: Write>(
         enum_ident: &str,
-        defs: &[AttributeDef],
+        defs: &[Def],
         f: &mut BufWriter<W>,
     ) -> std::io::Result<()> {
-        let static_defs: Vec<_> = defs.iter().filter_map(AttributeDef::static_kind).collect();
+        let static_defs: Vec<_> = defs.iter().filter_map(Def::static_kind).collect();
 
         // Property name map:
         {
@@ -384,299 +428,6 @@ mod enums {
                 enum_ident,
                 map_codegen.build()
             )?;
-        }
-
-        Ok(())
-    }
-}
-
-// Old-style symbols
-mod symbols {
-    use super::*;
-
-    pub(crate) fn codegen_static_tag_symbols(
-        defs: &[TagDef],
-        out_path: std::path::PathBuf,
-    ) -> std::io::Result<()> {
-        let mut f = BufWriter::new(File::create(&out_path)?);
-
-        writeln!(&mut f, "use crate::WebNS;")?;
-        writeln!(
-            &mut f,
-            "use crate::static_web_tag::{{StaticWebTag, StaticWebTagSymbolNamespace}};"
-        )?;
-        writeln!(&mut f)?;
-
-        // Symbol definition array:
-        {
-            writeln!(
-                &mut f,
-                "pub(crate) const __WEB_TAGS: [StaticWebTag; {len}] = [",
-                len = defs.len()
-            )?;
-
-            for def in defs.iter() {
-                writeln!(
-                    &mut f,
-                    r#"    StaticWebTag {{ web_ns: WebNS::{web_ns}, name: "{attr}" }},"#,
-                    web_ns = def.web_ns,
-                    attr = def.tag,
-                )?;
-            }
-
-            writeln!(&mut f, "];\n",)?;
-        }
-
-        // Symbol namespace for all known attributes:
-        {
-            writeln!(
-                &mut f,
-                r#"
-    pub(crate) const __TAG_SYMBOL_NS: StaticWebTagSymbolNamespace = StaticWebTagSymbolNamespace {{
-        web_tags: &__WEB_TAGS,
-    }};"#,
-            )?;
-        }
-
-        Ok(())
-    }
-
-    pub(crate) fn codegen_static_attribute_symbols(
-        defs: &[AttributeDef],
-        out_path: std::path::PathBuf,
-    ) -> std::io::Result<()> {
-        let mut f = BufWriter::new(File::create(&out_path)?);
-
-        writeln!(&mut f, "use crate::WebNS;")?;
-        writeln!(
-            &mut f,
-            "use crate::static_web_attr::{{StaticWebAttr, StaticWebAttrSymbolNamespace}};"
-        )?;
-        writeln!(&mut f, "use crate::attr::attr_type::*;")?;
-        writeln!(&mut f)?;
-
-        // Symbol definition array:
-        {
-            writeln!(
-                &mut f,
-                "pub(crate) const __WEB_ATTRS: [StaticWebAttr; {len}] = [",
-                len = defs.iter().filter_map(AttributeDef::static_kind).count()
-            )?;
-
-            for def in defs.iter() {
-                if let Some(static_kind) = def.static_kind() {
-                    writeln!(
-                        &mut f,
-                        r#"    StaticWebAttr {{ web_ns: WebNS::{web_ns}, name: "{attr}", property: "{prop}", attr_type: AttrType({flags}) }},"#,
-                        web_ns = def.web_ns,
-                        attr = static_kind.attr,
-                        prop = static_kind.prop,
-                        flags = static_kind.flags
-                    )?;
-                }
-            }
-
-            writeln!(&mut f, "];\n",)?;
-        }
-
-        // Symbol namespace for all known attributes:
-        {
-            writeln!(
-                &mut f,
-                r#"
-    pub(crate) const __ATTR_SYMBOL_NS: StaticWebAttrSymbolNamespace = StaticWebAttrSymbolNamespace {{
-        web_attrs: &__WEB_ATTRS,
-    }};"#,
-            )?;
-        }
-
-        Ok(())
-    }
-
-    pub(crate) fn codegen_static_web_tag_ns_lookup_tables(
-        defs: &[TagDef],
-        ns_desc: NamespaceDesc,
-        out_path: std::path::PathBuf,
-    ) -> std::io::Result<()> {
-        let mut f = BufWriter::new(File::create(&out_path)?);
-
-        let defs: Vec<_> = defs
-            .iter()
-            .filter(|def| def.web_ns == ns_desc.name)
-            .collect();
-
-        writeln!(&mut f, "use dyn_symbol::Symbol;")?;
-        writeln!(
-            &mut f,
-            "use crate::static_web_tag::{{StaticWebTagLookupTable}};"
-        )?;
-        writeln!(&mut f, "use crate::static_unicase::*;")?;
-        writeln!(&mut f, "use crate::symbols::tag::*;")?;
-        writeln!(&mut f)?;
-
-        // Attribute class:
-        {
-            writeln!(
-                &mut f,
-                r#"
-    pub(crate) const __TAG_LOOKUP_TABLE: StaticWebTagLookupTable = StaticWebTagLookupTable {{"#,
-            )?;
-
-            // Tag name map:
-            {
-                let def_keys: Vec<_> = defs
-                    .iter()
-                    .map(|def| {
-                        (
-                            def,
-                            PhfKeyRef {
-                                key: StaticUniCase::new(def.tag),
-                                ref_expr: format!(
-                                    "StaticUniCase::new(__WEB_TAGS[{}].name)",
-                                    def.static_id
-                                ),
-                            },
-                        )
-                    })
-                    .collect();
-
-                let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> =
-                    phf_codegen::Map::new();
-                for (def, key) in def_keys {
-                    map_codegen.entry(key, &format!("{}", def.static_id));
-                }
-
-                writeln!(&mut f, "    tag_unicase_map: {},", map_codegen.build())?;
-            }
-
-            writeln!(&mut f, "}};\n",)?;
-        }
-
-        // Public interface:
-        {
-            for def in defs.iter() {
-                writeln!(
-                    &mut f,
-                    r#"
-    /// The {ns_name} `{tag}` element tag name
-    pub const {pub_const_ident}: Symbol = Symbol::Static(&__TAG_SYMBOL_NS, {static_id});"#,
-                    ns_name = ns_desc.name,
-                    tag = def.tag,
-                    pub_const_ident = def.pub_const_ident,
-                    static_id = def.static_id,
-                )?;
-            }
-
-            writeln!(&mut f, "",)?;
-        }
-
-        Ok(())
-    }
-
-    pub(crate) fn codegen_static_web_attr_ns_lookup_tables(
-        defs: &[AttributeDef],
-        ns_desc: NamespaceDesc,
-        out_path: std::path::PathBuf,
-    ) -> std::io::Result<()> {
-        let mut f = BufWriter::new(File::create(&out_path)?);
-
-        let defs: Vec<_> = defs
-            .iter()
-            .filter(|def| def.web_ns == ns_desc.name)
-            .filter_map(AttributeDef::static_kind)
-            .collect();
-
-        writeln!(&mut f, "use dyn_symbol::Symbol;")?;
-        writeln!(
-            &mut f,
-            "use crate::static_web_attr::{{StaticWebAttrLookupTables}};"
-        )?;
-        writeln!(&mut f, "use crate::static_unicase::*;")?;
-        writeln!(&mut f, "use crate::symbols::attr::*;")?;
-        writeln!(&mut f)?;
-
-        // Attribute class:
-        {
-            writeln!(
-                &mut f,
-                r#"
-    pub(crate) const __ATTR_LOOKUP_TABLES: StaticWebAttrLookupTables = StaticWebAttrLookupTables {{"#,
-            )?;
-
-            // Attribute name map:
-            {
-                let def_keys: Vec<_> = defs
-                    .iter()
-                    .map(|def| {
-                        (
-                            def,
-                            PhfKeyRef {
-                                key: StaticUniCase::new(def.attr),
-                                ref_expr: format!(
-                                    "StaticUniCase::new(__WEB_ATTRS[{}].name)",
-                                    def.static_id
-                                ),
-                            },
-                        )
-                    })
-                    .collect();
-
-                let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> =
-                    phf_codegen::Map::new();
-                for (def, key) in def_keys {
-                    map_codegen.entry(key, &format!("{}", def.static_id));
-                }
-
-                writeln!(
-                    &mut f,
-                    "    attribute_unicase_map: {},",
-                    map_codegen.build()
-                )?;
-            }
-
-            // Prop name map:
-            {
-                let def_keys: Vec<_> = defs
-                    .iter()
-                    .map(|def| {
-                        (
-                            def,
-                            PhfKeyRef {
-                                key: def.prop,
-                                ref_expr: format!("__WEB_ATTRS[{}].property", def.static_id),
-                            },
-                        )
-                    })
-                    .collect();
-
-                let mut map_codegen: phf_codegen::Map<PhfKeyRef<&'static str>> =
-                    phf_codegen::Map::new();
-                for (def, key) in def_keys {
-                    map_codegen.entry(key, &format!("{}", def.static_id));
-                }
-
-                writeln!(&mut f, "    property_map: {},\n", map_codegen.build())?;
-            }
-
-            writeln!(&mut f, "}};\n",)?;
-        }
-
-        // Public interface:
-        {
-            for def in defs.iter() {
-                writeln!(
-                    &mut f,
-                    r#"
-    /// The {ns_name} `{attr}` attribute
-    pub const {pub_const_ident}: Symbol = Symbol::Static(&__ATTR_SYMBOL_NS, {static_id});"#,
-                    ns_name = ns_desc.name,
-                    attr = def.attr,
-                    pub_const_ident = def.pub_const_ident,
-                    static_id = def.static_id,
-                )?;
-            }
-
-            writeln!(&mut f, "",)?;
         }
 
         Ok(())

@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 downcast-rs = "1"
-dyn-symbol = { git = "https://github.com/audunhalland/dyn-symbol.git", branch = "main" }
 unicase = "2"
 phf = { version = "0.8", features = ["unicase"] }
 phf_shared = { version = "0.8", features = ["unicase"] }

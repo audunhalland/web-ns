@@ -8,7 +8,7 @@ use super::*;
 
 pub mod tags {
     //! Tag definitions for HTML5
-    include!(concat!(env!("OUT_DIR"), "/codegen_static_html_tags.rs"));
+    include!(concat!(env!("OUT_DIR"), "/codegen_tag_html_enums.rs"));
 }
 
 pub mod attributes {
@@ -81,19 +81,22 @@ impl super::WebNamespace for Html5Namespace {
 }
 
 impl super::TypedWebNamespace for Html5Namespace {
-    type Element = (); // TODO
+    type Element = tags::HtmlTag;
     type Attribute = attributes::HtmlAttr;
 
-    fn typed_element_by_local_name(&self, _: &str) -> Result<Self::Element, Error> {
-        Ok(())
+    fn element_by_local_name(&self, name: &str) -> Result<Self::Element, Error> {
+        tags::STATIC_LOCAL_NAME_LOOKUP
+            .get(&unicase::UniCase::ascii(name))
+            .map(Clone::clone)
+            .ok_or_else(|| Error::InvalidAttribute)
     }
 
-    fn typed_attribute_by_local_name(
+    fn attribute_by_local_name(
         &self,
         _: &Self::Element,
         name: &str,
     ) -> Result<Self::Attribute, Error> {
-        attributes::STATIC_ATTR_LOOKUP
+        attributes::STATIC_LOCAL_NAME_LOOKUP
             .get(&unicase::UniCase::ascii(name))
             .map(Clone::clone)
             .ok_or_else(|| Error::InvalidAttribute)
@@ -116,9 +119,9 @@ mod tests {
     }
 
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
-        let element = ();
+        let element = tags::HtmlTag::Div;
 
-        if let Ok(attribute) = html5::HTML5_NS.typed_attribute_by_local_name(&element, name) {
+        if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
             let expected = expected.expect("Expected no match, but there was a match");
             assert_eq!(attribute.local_name(), expected.0);
 

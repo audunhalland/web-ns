@@ -12,9 +12,7 @@ pub(crate) mod data;
 
 mod value;
 
-use std::convert::TryFrom;
-
-use crate::{Error, WebNS};
+use crate::Error;
 
 pub trait Attribute {
     fn attr_type(&self) -> attr_type::AttrType;

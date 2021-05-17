@@ -70,7 +70,7 @@ impl OriginWebNamespace for Attr {
     }
 }
 
-impl super::LocalName for Attr {
+impl crate::LocalName for Attr {
     fn local_name(&self) -> &str {
         match self {
             Self::Html5(attr) => attr.local_name(),
@@ -78,10 +78,18 @@ impl super::LocalName for Attr {
     }
 }
 
-impl super::PropertyName for Attr {
+impl crate::PropertyName for Attr {
     fn property_name(&self) -> &str {
         match self {
             Self::Html5(attr) => attr.property_name(),
+        }
+    }
+}
+
+impl crate::attr::Attribute for Attr {
+    fn attr_type(&self) -> crate::attr_type::AttrType {
+        match self {
+            Self::Html5(attr) => attr.attr_type(),
         }
     }
 }

@@ -37,7 +37,7 @@ impl Html5Namespace {
             })
     }
 
-    fn parse_data_attribute(&self, name: &str) -> Result<attr::data::DataAttr, Error> {
+    fn parse_data_attribute(&self, name: &str) -> Result<attr::dataset::DataAttr, Error> {
         if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
             let strbuf = format!(
                 "data-{}data{}{}",
@@ -45,7 +45,7 @@ impl Html5Namespace {
                 name.chars().nth(5).unwrap().to_uppercase(),
                 &name[6..]
             );
-            Ok(attr::data::DataAttr {
+            Ok(attr::dataset::DataAttr {
                 strbuf,
                 buf_property_start: name.len(),
                 attr_type: AttrType(flags::STRING),
@@ -55,7 +55,7 @@ impl Html5Namespace {
         }
     }
 
-    fn parse_data_property(&self, name: &str) -> Result<attr::data::DataAttr, Error> {
+    fn parse_data_property(&self, name: &str) -> Result<attr::dataset::DataAttr, Error> {
         if name.len() > 4 && name.starts_with("data") {
             let strbuf = format!(
                 "data-{}{}{}",
@@ -63,7 +63,7 @@ impl Html5Namespace {
                 &name[5..],
                 name
             );
-            Ok(attr::data::DataAttr {
+            Ok(attr::dataset::DataAttr {
                 strbuf,
                 buf_property_start: name.len() + 1,
                 attr_type: AttrType(flags::STRING),

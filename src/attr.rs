@@ -5,10 +5,9 @@
 //!
 //! Known, internal attributes allocate no memory upon being parsed.
 //!
-pub mod attr_impl;
 pub mod attr_type;
 
-pub(crate) mod data;
+pub(crate) mod dataset;
 
 mod value;
 

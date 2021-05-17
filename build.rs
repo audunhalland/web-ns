@@ -262,7 +262,7 @@ mod enums {
                         def.ns.name,
                         entity_kind.name()
                     )?;
-                    writeln!(f, "    Dataset(Box<crate::attr::data::DataAttr>),")?;
+                    writeln!(f, "    Dataset(Box<crate::attr::dataset::DataAttr>),")?;
                 }
             }
         }

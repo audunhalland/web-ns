@@ -13,7 +13,7 @@ pub trait WebNamespace: crate::TagByLocalName<Tag> {
 ///
 /// Trait for accessing the origin namespace of some entity.
 ///
-trait OriginWebNamespace {
+pub trait OriginWebNamespace {
     fn origin_web_namespace(&self) -> &'static dyn WebNamespace;
 }
 
@@ -62,7 +62,7 @@ impl super::AttrByProperty<Attr> for Tag {
 ///
 #[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum Attr {
-    Html5(super::html5::HtmlAttr),
+    Html5(crate::html5::HtmlAttr),
 }
 
 impl OriginWebNamespace for Attr {

@@ -72,20 +72,18 @@ fn codegen() -> std::io::Result<()> {
         Path::new(&out_dir).join("codegen_tag_symbols.rs"),
     )?;
 
-    symbols::codegen_static_attribute_symbols(
-        &attribute_defs,
-        Path::new(&out_dir).join("codegen_attr_symbols.rs"),
-    )?;
-
     {
         let mut html_enum_file = BufWriter::new(File::create(
             &Path::new(&out_dir).join("codegen_attr_html_enums.rs"),
         )?);
-        enums::codegen_static_attribute_enum("HtmlAttr", &attribute_defs, &mut html_enum_file)?;
-        enums::codegen_static_attribute_names(&attribute_defs, &mut html_enum_file)?;
-        enums::codegen_static_attribute_properties(&attribute_defs, &mut html_enum_file)?;
-        enums::codegen_static_attribute_lookup("HtmlAttr", &attribute_defs, &mut html_enum_file)?;
-        enums::codegen_static_property_lookup("HtmlAttr", &attribute_defs, &mut html_enum_file)?;
+        let f = &mut html_enum_file;
+
+        writeln!(f, "use crate::static_unicase::*;")?;
+        enums::codegen_static_attribute_enum("HtmlAttr", &attribute_defs, f)?;
+        enums::codegen_static_attribute_names(&attribute_defs, f)?;
+        enums::codegen_static_attribute_properties(&attribute_defs, f)?;
+        enums::codegen_static_attribute_lookup("HtmlAttr", &attribute_defs, f)?;
+        enums::codegen_static_property_lookup("HtmlAttr", &attribute_defs, f)?;
     }
 
     symbols::codegen_static_web_tag_ns_lookup_tables(

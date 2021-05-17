@@ -16,7 +16,6 @@ pub mod attr;
 pub mod html5;
 
 mod static_unicase;
-mod static_web_attr;
 mod static_web_tag;
 mod symbols;
 
@@ -31,7 +30,7 @@ enum WebNS {
 }
 
 impl WebNS {
-    fn web_namespace(&self) -> &'static dyn WebNamespace {
+    pub fn web_namespace(&self) -> &'static dyn WebNamespace {
         match self {
             Self::HTML5 => &html5::HTML5_NS,
         }
@@ -54,28 +53,12 @@ pub trait PropertyName {
 pub trait WebNamespace {
     /// The name of this webspace.
     fn name(&self) -> &'static str;
-
-    ///
-    /// Look up an element by its local name within the namespace.
-    ///
-    /// The name matching is case-insensitive.
-    ///
-    fn element_by_local_name(&self, local_name: &str) -> Result<Symbol, Error>;
-
-    ///
-    /// Look up an attribute by its containing element and its local name within the namespace.
-    ///
-    /// The name matching is case-insensitive.
-    ///
-    fn attribute_by_local_name(&self, element: &Symbol, local_name: &str) -> Result<Symbol, Error>;
 }
 
 // TODO: Choose a better name? Get rid of untyped Namespace
-pub trait TypedWebNamespace {
+pub trait TypedWebNamespace: WebNamespace {
     type Element;
     type Attribute;
-
-    fn name(&self) -> &'static str;
 
     fn typed_element_by_local_name(&self, local_name: &str) -> Result<Self::Element, Error>;
 

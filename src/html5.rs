@@ -1,10 +1,7 @@
 //! HTML5 implementation
 
-use dyn_symbol::Symbol;
-
 use crate::attr::attr_type::flags;
 use crate::attr::attr_type::AttrType;
-use crate::symbols::attr::__ATTR_SYMBOL_NS;
 use crate::Error;
 
 use super::*;
@@ -16,7 +13,6 @@ pub mod tags {
 
 pub mod attributes {
     //! Attribute definitions for HTML5
-    include!(concat!(env!("OUT_DIR"), "/codegen_static_html_attrs.rs"));
     include!(concat!(env!("OUT_DIR"), "/codegen_attr_html_enums.rs"));
 }
 
@@ -27,17 +23,6 @@ pub struct Html5Namespace(Private);
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
 impl Html5Namespace {
-    /// Look up an attribute by its DOM JavaScript property name.
-    pub fn attribute_by_property(&self, property_name: &str) -> Result<Symbol, Error> {
-        attributes::__ATTR_LOOKUP_TABLES
-            .attribute_by_property_name(property_name)
-            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
-            .or_else(|_| {
-                self.parse_data_property(property_name)
-                    .map(|data| Symbol::Dynamic(Box::new(data)))
-            })
-    }
-
     pub fn typed_attribute_by_property(
         &self,
         property_name: &str,
@@ -93,29 +78,11 @@ impl super::WebNamespace for Html5Namespace {
     fn name(&self) -> &'static str {
         "html5"
     }
-
-    fn element_by_local_name(&self, name: &str) -> Result<Symbol, Error> {
-        tags::__TAG_LOOKUP_TABLE.tag_by_local_name(name)
-    }
-
-    fn attribute_by_local_name(&self, _: &Symbol, name: &str) -> Result<Symbol, Error> {
-        attributes::__ATTR_LOOKUP_TABLES
-            .attribute_by_local_name(name)
-            .map(|id| Symbol::Static(&__ATTR_SYMBOL_NS, id))
-            .or_else(|_| {
-                self.parse_data_attribute(name)
-                    .map(|attr| Symbol::Dynamic(Box::new(attr)))
-            })
-    }
 }
 
 impl super::TypedWebNamespace for Html5Namespace {
     type Element = (); // TODO
     type Attribute = attributes::HtmlAttr;
-
-    fn name(&self) -> &'static str {
-        "html5"
-    }
 
     fn typed_element_by_local_name(&self, _: &str) -> Result<Self::Element, Error> {
         Ok(())
@@ -139,44 +106,16 @@ impl super::TypedWebNamespace for Html5Namespace {
 
 #[cfg(test)]
 mod tests {
-    use super::WebNamespace;
     use super::*;
-
-    use std::convert::TryFrom;
 
     #[test]
     fn html5_static_attribute_to_property_name() {
-        let attribute = html5::attributes::CLASS;
+        let attribute = html5::attributes::HtmlAttr::Class;
 
-        let info = attr::AttributeInfo::try_from(&attribute).unwrap();
-        assert_eq!(info.property(), Some("className"));
+        assert_eq!(attribute.property_name(), "className");
     }
 
     fn test_html_attribute(name: &str, expected: Option<(&str, &str)>) {
-        let element = html5::tags::DIV;
-
-        if let Ok(attribute) = html5::HTML5_NS.attribute_by_local_name(&element, name) {
-            let expected = expected.expect("Expected no match, but there was a match");
-            assert_eq!(attribute.name(), expected.0);
-
-            let info = attr::AttributeInfo::try_from(&attribute).unwrap();
-            let property = info.property().map(ToString::to_string);
-            assert_eq!(property, Some(expected.1.to_string()));
-
-            let attr_by_prop = html5::HTML5_NS.attribute_by_property(expected.1).unwrap();
-            assert_eq!(attr_by_prop, attribute);
-            assert_eq!(attr_by_prop.name(), attribute.name());
-
-            let info = attr::AttributeInfo::try_from(&attr_by_prop).unwrap();
-            assert_eq!(info.property().map(ToString::to_string), property);
-        } else {
-            assert!(expected.is_none());
-        }
-
-        test_typed_html_attribute(name, expected);
-    }
-
-    fn test_typed_html_attribute(name: &str, expected: Option<(&str, &str)>) {
         let element = ();
 
         if let Ok(attribute) = html5::HTML5_NS.typed_attribute_by_local_name(&element, name) {

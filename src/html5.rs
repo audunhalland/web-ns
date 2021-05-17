@@ -23,7 +23,7 @@ pub struct Html5Namespace(Private);
 pub const HTML5_NS: Html5Namespace = Html5Namespace(Private);
 
 impl Html5Namespace {
-    pub fn typed_attribute_by_property(
+    pub fn attribute_by_property(
         &self,
         property_name: &str,
     ) -> Result<attributes::HtmlAttr, Error> {
@@ -128,7 +128,7 @@ mod tests {
             assert_eq!(attribute.property_name(), expected.1);
 
             let attr_by_prop = html5::HTML5_NS
-                .typed_attribute_by_property(expected.1)
+                .attribute_by_property(expected.1)
                 .unwrap();
 
             assert_eq!(attr_by_prop.local_name(), expected.0);
@@ -156,15 +156,15 @@ mod tests {
     #[test]
     fn lookup_html_property() {
         assert_eq!(
-            HTML5_NS.typed_attribute_by_property("className").unwrap(),
+            HTML5_NS.attribute_by_property("className").unwrap(),
             attributes::HtmlAttr::Class
         );
         assert_ne!(
-            HTML5_NS.typed_attribute_by_property("src").unwrap(),
+            HTML5_NS.attribute_by_property("src").unwrap(),
             attributes::HtmlAttr::Class
         );
-        assert!(HTML5_NS.typed_attribute_by_property("ClassName").is_err());
-        assert!(HTML5_NS.typed_attribute_by_property("foobar").is_err());
+        assert!(HTML5_NS.attribute_by_property("ClassName").is_err());
+        assert!(HTML5_NS.attribute_by_property("foobar").is_err());
     }
 
     #[test]

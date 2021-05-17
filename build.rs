@@ -61,10 +61,9 @@ enum DefKind {
 
 #[derive(Clone)]
 struct StaticDefKind {
-    static_id: usize,
     entity_kind: EntityKind,
-    pub_const_ident: String,
-    enum_ident: String,
+    const_ident: String,
+    variant_ident: String,
     local_name: &'static str,
     prop: &'static str,
     flags: u32,
@@ -141,10 +140,9 @@ fn defs() -> Vec<Def> {
         defs.push(Def {
             ns: &HTML5,
             kind: DefKind::Static(StaticDefKind {
-                static_id: defs.len(),
                 entity_kind: EntityKind::Tag,
-                pub_const_ident: format!("{}", tag.replace('-', "_").to_uppercase()),
-                enum_ident: make_enum_ident(tag),
+                const_ident: format!("{}", tag.replace('-', "_").to_uppercase()),
+                variant_ident: make_enum_ident(tag),
                 local_name: tag,
                 prop: "",
                 flags: 0,
@@ -157,10 +155,9 @@ fn defs() -> Vec<Def> {
         defs.push(Def {
             ns: &HTML5,
             kind: DefKind::Static(StaticDefKind {
-                static_id: defs.len(),
                 entity_kind: EntityKind::Attribute,
-                pub_const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
-                enum_ident: make_enum_ident(attr),
+                const_ident: format!("{}", attr.replace('-', "_").to_uppercase()),
+                variant_ident: make_enum_ident(attr),
                 local_name: attr,
                 prop,
                 flags: *flags,
@@ -204,7 +201,7 @@ mod enums {
                     writeln!(
                         f,
                         "    pub(crate) const {}: &str = \"{}\";",
-                        static_kind.pub_const_ident, static_kind.local_name
+                        static_kind.const_ident, static_kind.local_name
                     )?;
                 }
                 DefKind::DataAttr => {}
@@ -225,7 +222,7 @@ mod enums {
                     writeln!(
                         f,
                         "    pub(crate) const {}: &str = \"{}\";",
-                        static_kind.pub_const_ident, static_kind.prop
+                        static_kind.const_ident, static_kind.prop
                     )?;
                 }
                 DefKind::DataAttr => {}
@@ -256,7 +253,7 @@ mod enums {
                         static_kind.local_name,
                         entity_kind.name()
                     )?;
-                    writeln!(f, "    {ident},\n", ident = static_kind.enum_ident)?;
+                    writeln!(f, "    {ident},\n", ident = static_kind.variant_ident)?;
                 }
                 DefKind::DataAttr => {
                     writeln!(
@@ -281,9 +278,9 @@ mod enums {
                     DefKind::Static(static_kind) => {
                         writeln!(
                             f,
-                            r#"            Self::{ident} => names::{pub_const_ident},"#,
-                            ident = static_kind.enum_ident,
-                            pub_const_ident = static_kind.pub_const_ident,
+                            r#"            Self::{ident} => names::{const_ident},"#,
+                            ident = static_kind.variant_ident,
+                            const_ident = static_kind.const_ident,
                         )?;
                     }
                     DefKind::DataAttr => {
@@ -311,7 +308,7 @@ mod enums {
                         writeln!(
                             f,
                             r#"            Self::{ident} => AttrType({flags}),"#,
-                            ident = static_kind.enum_ident,
+                            ident = static_kind.variant_ident,
                             flags = static_kind.flags
                         )?;
                     }
@@ -335,9 +332,9 @@ mod enums {
                     DefKind::Static(static_kind) => {
                         writeln!(
                             f,
-                            r#"            Self::{ident} => properties::{pub_const_ident},"#,
-                            ident = static_kind.enum_ident,
-                            pub_const_ident = static_kind.pub_const_ident,
+                            r#"            Self::{ident} => properties::{const_ident},"#,
+                            ident = static_kind.variant_ident,
+                            const_ident = static_kind.const_ident,
                         )?;
                     }
                     DefKind::DataAttr => {
@@ -372,7 +369,7 @@ mod enums {
                         def,
                         PhfKeyRef {
                             key: StaticUniCase::new(def.local_name),
-                            ref_expr: format!("StaticUniCase::new(names::{})", def.pub_const_ident),
+                            ref_expr: format!("StaticUniCase::new(names::{})", def.const_ident),
                         },
                     )
                 })
@@ -381,7 +378,7 @@ mod enums {
             let mut map_codegen: phf_codegen::Map<PhfKeyRef<StaticUniCase>> =
                 phf_codegen::Map::new();
             for (def, key) in def_keys {
-                map_codegen.entry(key, &format!("{}::{}", enum_ident, def.enum_ident));
+                map_codegen.entry(key, &format!("{}::{}", enum_ident, def.variant_ident));
             }
 
             writeln!(
@@ -411,7 +408,7 @@ mod enums {
                         def,
                         PhfKeyRef {
                             key: def.prop,
-                            ref_expr: format!("properties::{}", def.pub_const_ident),
+                            ref_expr: format!("properties::{}", def.const_ident),
                         },
                     )
                 })
@@ -419,7 +416,7 @@ mod enums {
 
             let mut map_codegen: phf_codegen::Map<PhfKeyRef<&str>> = phf_codegen::Map::new();
             for (def, key) in def_keys {
-                map_codegen.entry(key, &format!("{}::{}", enum_ident, def.enum_ident));
+                map_codegen.entry(key, &format!("{}::{}", enum_ident, def.variant_ident));
             }
 
             writeln!(

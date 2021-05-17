@@ -209,7 +209,7 @@ mod enums {
         defs: &[AttributeDef],
         f: &mut BufWriter<W>,
     ) -> std::io::Result<()> {
-        writeln!(f, "#[derive(Clone)]")?;
+        writeln!(f, "#[derive(Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]")?;
         writeln!(f, "pub enum {} {{", enum_ident)?;
         for def in defs.iter() {
             match &def.kind {
@@ -246,6 +246,35 @@ mod enums {
                     }
                     AttributeDefKind::Data => {
                         writeln!(f, "            Self::Dataset(data) => data.local_name(),")?;
+                    }
+                }
+            }
+            writeln!(f, "        }}")?;
+            writeln!(f, "    }}")?;
+            writeln!(f, "}}")?;
+        }
+
+        // Attribute
+        {
+            writeln!(f, "impl crate::attr::Attribute for {} {{", enum_ident)?;
+            writeln!(
+                f,
+                "    fn attr_type(&self) -> crate::attr::attr_type::AttrType {{"
+            )?;
+            writeln!(f, "        use crate::attr::attr_type::AttrType;")?;
+            writeln!(f, "        match self {{")?;
+            for def in defs.iter() {
+                match &def.kind {
+                    AttributeDefKind::Static(static_kind) => {
+                        writeln!(
+                            f,
+                            r#"            Self::{ident} => AttrType({flags}),"#,
+                            ident = static_kind.enum_ident,
+                            flags = static_kind.flags
+                        )?;
+                    }
+                    AttributeDefKind::Data => {
+                        writeln!(f, "            Self::Dataset(data) => data.attr_type(),")?;
                     }
                 }
             }

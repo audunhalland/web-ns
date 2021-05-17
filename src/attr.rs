@@ -18,6 +18,41 @@ use std::convert::TryFrom;
 use crate::static_web_attr::StaticWebAttrSymbolNamespace;
 use crate::{Error, WebNS};
 
+pub trait Attribute {
+    fn attr_type(&self) -> attr_type::AttrType;
+}
+
+pub trait DeserializeAttributeValue {
+    fn deserialize_attribute_value<S>(&self, input: Option<S>) -> Result<AttributeValue, Error>
+    where
+        S: Into<String> + AsRef<str>;
+}
+
+impl<A> DeserializeAttributeValue for A
+where
+    A: Attribute,
+{
+    fn deserialize_attribute_value<S>(&self, input: Option<S>) -> Result<AttributeValue, Error>
+    where
+        S: Into<String> + AsRef<str>,
+    {
+        value::parse_attribute(input, self.attr_type())
+    }
+}
+
+pub trait SerializeAttributeValue {
+    fn serialize_attribute_value<S>(&self, value: &AttributeValue) -> SerializedAttributeValue;
+}
+
+impl<A> SerializeAttributeValue for A
+where
+    A: Attribute,
+{
+    fn serialize_attribute_value<S>(&self, value: &AttributeValue) -> SerializedAttributeValue {
+        value::serialize_attribute_value(value, self.attr_type())
+    }
+}
+
 ///
 /// Metadata about an attribute.
 ///

@@ -3,7 +3,7 @@ pub type Flags = u32;
 ///
 /// The runtime type of an attribute.
 ///
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct AttrType(pub Flags);
 
 impl AttrType {

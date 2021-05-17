@@ -214,22 +214,22 @@ mod tests {
     #[test]
     fn lookup_html_property() {
         assert_eq!(
-            HTML5_NS.attribute_by_property("className").unwrap(),
-            attributes::CLASS
+            HTML5_NS.typed_attribute_by_property("className").unwrap(),
+            attributes::HtmlAttr::Class
         );
         assert_ne!(
-            HTML5_NS.attribute_by_property("src").unwrap(),
-            attributes::CLASS
+            HTML5_NS.typed_attribute_by_property("src").unwrap(),
+            attributes::HtmlAttr::Class
         );
-        assert!(HTML5_NS.attribute_by_property("ClassName").is_err());
-        assert!(HTML5_NS.attribute_by_property("foobar").is_err());
+        assert!(HTML5_NS.typed_attribute_by_property("ClassName").is_err());
+        assert!(HTML5_NS.typed_attribute_by_property("foobar").is_err());
     }
 
     #[test]
     fn properties_in_hashmap() {
         let mut hashmap = std::collections::HashMap::new();
-        hashmap.insert(attributes::VLINK.clone(), 42);
+        hashmap.insert(attributes::HtmlAttr::Vlink, 42);
 
-        assert_eq!(hashmap.get(&attributes::VLINK), Some(&42));
+        assert_eq!(hashmap.get(&attributes::HtmlAttr::Vlink), Some(&42));
     }
 }

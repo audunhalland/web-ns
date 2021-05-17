@@ -1,7 +1,6 @@
 //! HTML5 implementation
 
-use crate::attr::attr_type::flags;
-use crate::attr::attr_type::AttrType;
+use crate::attr::dataset::DataAttr;
 use crate::Error;
 
 use super::*;
@@ -31,42 +30,6 @@ impl super::web::WebNamespace for Html5Namespace {
     }
 }
 
-fn parse_data_attribute(name: &str) -> Result<attr::dataset::DataAttr, Error> {
-    if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
-        let strbuf = format!(
-            "data-{}data{}{}",
-            &name[5..],
-            name.chars().nth(5).unwrap().to_uppercase(),
-            &name[6..]
-        );
-        Ok(attr::dataset::DataAttr {
-            strbuf,
-            buf_property_start: name.len(),
-            attr_type: AttrType(flags::STRING),
-        })
-    } else {
-        Err(Error::InvalidAttribute)
-    }
-}
-
-fn parse_data_property(name: &str) -> Result<attr::dataset::DataAttr, Error> {
-    if name.len() > 4 && name.starts_with("data") {
-        let strbuf = format!(
-            "data-{}{}{}",
-            name.chars().nth(4).unwrap().to_lowercase(),
-            &name[5..],
-            name
-        );
-        Ok(attr::dataset::DataAttr {
-            strbuf,
-            buf_property_start: name.len() + 1,
-            attr_type: AttrType(flags::STRING),
-        })
-    } else {
-        Err(Error::InvalidAttribute)
-    }
-}
-
 impl crate::TagByLocalName<tags::HtmlTag> for Html5Namespace {
     fn tag_by_local_name(&self, local_name: &str) -> Result<tags::HtmlTag, Error> {
         tags::STATIC_LOCAL_NAME_LOOKUP
@@ -90,7 +53,7 @@ impl crate::AttrByLocalName<attributes::HtmlAttr> for tags::HtmlTag {
             .map(Clone::clone)
             .ok_or_else(|| Error::InvalidAttribute)
             .or_else(|_| {
-                parse_data_attribute(local_name)
+                DataAttr::parse_attribute(local_name)
                     .map(|attr| attributes::HtmlAttr::Dataset(Box::new(attr)))
             })
     }
@@ -103,7 +66,7 @@ impl crate::AttrByProperty<attributes::HtmlAttr> for tags::HtmlTag {
             .map(Clone::clone)
             .ok_or_else(|| Error::InvalidAttribute)
             .or_else(|_| {
-                parse_data_property(property)
+                DataAttr::parse_property(property)
                     .map(|data| attributes::HtmlAttr::Dataset(Box::new(data)))
             })
     }

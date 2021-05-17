@@ -1,7 +1,5 @@
 //! HTML5 implementation
 
-use crate::attr::attr_type::flags;
-use crate::attr::attr_type::AttrType;
 use crate::Error;
 
 use super::*;
@@ -28,42 +26,6 @@ pub const SVG_NS: SvgNamespace = SvgNamespace(Private);
 impl super::web::WebNamespace for SvgNamespace {
     fn name(&self) -> &'static str {
         "svg"
-    }
-}
-
-fn parse_data_attribute(name: &str) -> Result<attr::dataset::DataAttr, Error> {
-    if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
-        let strbuf = format!(
-            "data-{}data{}{}",
-            &name[5..],
-            name.chars().nth(5).unwrap().to_uppercase(),
-            &name[6..]
-        );
-        Ok(attr::dataset::DataAttr {
-            strbuf,
-            buf_property_start: name.len(),
-            attr_type: AttrType(flags::STRING),
-        })
-    } else {
-        Err(Error::InvalidAttribute)
-    }
-}
-
-fn parse_data_property(name: &str) -> Result<attr::dataset::DataAttr, Error> {
-    if name.len() > 4 && name.starts_with("data") {
-        let strbuf = format!(
-            "data-{}{}{}",
-            name.chars().nth(4).unwrap().to_lowercase(),
-            &name[5..],
-            name
-        );
-        Ok(attr::dataset::DataAttr {
-            strbuf,
-            buf_property_start: name.len() + 1,
-            attr_type: AttrType(flags::STRING),
-        })
-    } else {
-        Err(Error::InvalidAttribute)
     }
 }
 

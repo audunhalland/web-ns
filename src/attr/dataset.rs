@@ -1,10 +1,49 @@
+use super::attr_type::flags;
 use super::attr_type::AttrType;
 
 #[derive(Clone)]
 pub struct DataAttr {
-    pub strbuf: String,
-    pub buf_property_start: usize,
-    pub attr_type: AttrType,
+    strbuf: String,
+    buf_property_start: usize,
+    attr_type: AttrType,
+}
+
+impl DataAttr {
+    pub(crate) fn parse_attribute(name: &str) -> Result<Self, crate::Error> {
+        if name.len() > 5 && unicase::UniCase::new(&name[..5]) == unicase::UniCase::new("data-") {
+            let strbuf = format!(
+                "data-{}data{}{}",
+                &name[5..],
+                name.chars().nth(5).unwrap().to_uppercase(),
+                &name[6..]
+            );
+            Ok(Self {
+                strbuf,
+                buf_property_start: name.len(),
+                attr_type: AttrType(flags::STRING),
+            })
+        } else {
+            Err(crate::Error::InvalidAttribute)
+        }
+    }
+
+    pub(crate) fn parse_property(name: &str) -> Result<Self, crate::Error> {
+        if name.len() > 4 && name.starts_with("data") {
+            let strbuf = format!(
+                "data-{}{}{}",
+                name.chars().nth(4).unwrap().to_lowercase(),
+                &name[5..],
+                name
+            );
+            Ok(Self {
+                strbuf,
+                buf_property_start: name.len() + 1,
+                attr_type: AttrType(flags::STRING),
+            })
+        } else {
+            Err(crate::Error::InvalidAttribute)
+        }
+    }
 }
 
 impl crate::LocalName for DataAttr {

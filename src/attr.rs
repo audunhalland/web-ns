@@ -36,14 +36,14 @@ where
 }
 
 pub trait SerializeAttributeValue {
-    fn serialize_attribute_value<S>(&self, value: &AttributeValue) -> SerializedAttributeValue;
+    fn serialize_attribute_value(&self, value: &AttributeValue) -> SerializedAttributeValue;
 }
 
 impl<A> SerializeAttributeValue for A
 where
     A: Attribute,
 {
-    fn serialize_attribute_value<S>(&self, value: &AttributeValue) -> SerializedAttributeValue {
+    fn serialize_attribute_value(&self, value: &AttributeValue) -> SerializedAttributeValue {
         value::serialize_attribute_value(value, self.attr_type())
     }
 }

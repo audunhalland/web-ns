@@ -1,4 +1,4 @@
-//! HTML5 implementation
+//! SVG implementation
 
 use crate::Error;
 

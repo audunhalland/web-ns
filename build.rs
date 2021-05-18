@@ -337,23 +337,16 @@ mod enums {
         {
             writeln!(f, "impl crate::LocalName for {} {{", enum_ident)?;
             writeln!(f, "    fn local_name(&self) -> &str {{")?;
-            writeln!(f, "        match self {{")?;
-            for def in defs.iter() {
-                match &def.kind {
-                    DefKind::Static(static_kind) => {
-                        writeln!(
-                            f,
-                            r#"            Self::{ident} => names::{const_ident},"#,
-                            ident = static_kind.variant_ident,
-                            const_ident = static_kind.const_ident,
-                        )?;
-                    }
-                    DefKind::DataAttr => {
-                        writeln!(f, "            Self::Dataset(data) => data.local_name(),")?;
-                    }
-                }
-            }
-            writeln!(f, "        }}")?;
+            codegen_enum_match_self(
+                f,
+                defs.iter().map(|def| match &def.kind {
+                    DefKind::Static(static_kind) => (
+                        static_kind.variant_ident.as_ref(),
+                        format!("names::{}", static_kind.const_ident),
+                    ),
+                    DefKind::DataAttr => ("Dataset(data)", "data.local_name()".to_string()),
+                }),
+            )?;
             writeln!(f, "    }}")?;
             writeln!(f, "}}")?;
         }
@@ -366,23 +359,16 @@ mod enums {
                 "    fn attr_type(&self) -> crate::attr::attr_type::AttrType {{"
             )?;
             writeln!(f, "        use crate::attr::attr_type::AttrType;")?;
-            writeln!(f, "        match self {{")?;
-            for def in defs.iter() {
-                match &def.kind {
-                    DefKind::Static(static_kind) => {
-                        writeln!(
-                            f,
-                            r#"            Self::{ident} => AttrType({flags}),"#,
-                            ident = static_kind.variant_ident,
-                            flags = static_kind.flags
-                        )?;
-                    }
-                    DefKind::DataAttr => {
-                        writeln!(f, "            Self::Dataset(data) => data.attr_type(),")?;
-                    }
-                }
-            }
-            writeln!(f, "        }}")?;
+            codegen_enum_match_self(
+                f,
+                defs.iter().map(|def| match &def.kind {
+                    DefKind::Static(static_kind) => (
+                        static_kind.variant_ident.as_ref(),
+                        format!("AttrType({})", static_kind.flags),
+                    ),
+                    DefKind::DataAttr => ("Dataset(data)", "data.attr_type()".to_string()),
+                }),
+            )?;
             writeln!(f, "    }}")?;
             writeln!(f, "}}")?;
         }
@@ -391,26 +377,16 @@ mod enums {
         if entity_kind == EntityKind::Attribute {
             writeln!(f, "impl crate::PropertyName for {} {{", enum_ident)?;
             writeln!(f, "    fn property_name(&self) -> &str {{")?;
-            writeln!(f, "        match self {{")?;
-            for def in defs.iter() {
-                match &def.kind {
-                    DefKind::Static(static_kind) => {
-                        writeln!(
-                            f,
-                            r#"            Self::{ident} => properties::{const_ident},"#,
-                            ident = static_kind.variant_ident,
-                            const_ident = static_kind.const_ident,
-                        )?;
-                    }
-                    DefKind::DataAttr => {
-                        writeln!(
-                            f,
-                            r#"            Self::Dataset(data) => data.property_name(),"#
-                        )?;
-                    }
-                }
-            }
-            writeln!(f, "        }}")?;
+            codegen_enum_match_self(
+                f,
+                defs.iter().map(|def| match &def.kind {
+                    DefKind::Static(static_kind) => (
+                        static_kind.variant_ident.as_ref(),
+                        format!("properties::{}", static_kind.const_ident),
+                    ),
+                    DefKind::DataAttr => ("Dataset(data)", "data.property_name()".to_string()),
+                }),
+            )?;
             writeln!(f, "    }}")?;
             writeln!(f, "}}")?;
         }
@@ -419,21 +395,16 @@ mod enums {
         if entity_kind == EntityKind::Tag {
             writeln!(f, "impl crate::IsVoid for {} {{", enum_ident)?;
             writeln!(f, "    fn is_void(&self) -> bool {{")?;
-            writeln!(f, "        match self {{")?;
-            for def in defs.iter() {
-                match &def.kind {
-                    DefKind::Static(static_kind) => {
-                        writeln!(
-                            f,
-                            r#"            Self::{ident} => {is_void},"#,
-                            ident = static_kind.variant_ident,
-                            is_void = static_kind.is_void
-                        )?;
-                    }
-                    DefKind::DataAttr => {}
-                }
-            }
-            writeln!(f, "        }}")?;
+            codegen_enum_match_self(
+                f,
+                defs.iter().filter_map(|def| match &def.kind {
+                    DefKind::Static(static_kind) => Some((
+                        static_kind.variant_ident.as_ref(),
+                        format!("{}", static_kind.is_void),
+                    )),
+                    DefKind::DataAttr => None,
+                }),
+            )?;
             writeln!(f, "    }}")?;
             writeln!(f, "}}")?;
         }
@@ -448,22 +419,16 @@ mod enums {
                 f,
                 "    fn target_web_namespace(&self) -> &'static dyn crate::web::WebNamespace {{"
             )?;
-            writeln!(f, "        match self {{")?;
-            for def in defs.iter() {
-                match &def.kind {
-                    DefKind::Static(static_kind) => {
-                        writeln!(
-                            f,
-                            r#"            Self::{ident} => &{path}::{name},"#,
-                            ident = static_kind.variant_ident,
-                            path = def.target_ns.path,
-                            name = def.target_ns.name
-                        )?;
-                    }
-                    DefKind::DataAttr => {}
-                }
-            }
-            writeln!(f, "        }}")?;
+            codegen_enum_match_self(
+                f,
+                defs.iter().filter_map(|def| match &def.kind {
+                    DefKind::Static(static_kind) => Some((
+                        static_kind.variant_ident.as_ref(),
+                        format!("&{}::{}", def.target_ns.path, def.target_ns.name),
+                    )),
+                    DefKind::DataAttr => None,
+                }),
+            )?;
             writeln!(f, "    }}")?;
             writeln!(f, "}}")?;
         }
@@ -577,4 +542,33 @@ impl<T> phf_shared::FmtConst for PhfKeyRef<T> {
     fn fmt_const(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.ref_expr)
     }
+}
+
+fn codegen_enum_match_self<'a, W: Write>(
+    f: &mut BufWriter<W>,
+    iterator: impl Iterator<Item = (&'a str, String)>,
+) -> std::io::Result<()> {
+    use std::collections::BTreeMap;
+
+    let mut by_expr: BTreeMap<String, Vec<&'a str>> = BTreeMap::new();
+
+    for (variant, expr) in iterator {
+        by_expr.entry(expr).or_insert_with(Vec::new).push(variant);
+    }
+
+    writeln!(f, "        match self {{")?;
+
+    for (expr, variants) in by_expr.into_iter() {
+        let variants_joined = variants
+            .into_iter()
+            .map(|variant| format!("            Self::{}", variant))
+            .collect::<Vec<_>>()
+            .join(" |\n");
+
+        writeln!(f, "{} => {},", variants_joined, expr)?;
+    }
+
+    writeln!(f, "        }}")?;
+
+    Ok(())
 }

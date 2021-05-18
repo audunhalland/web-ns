@@ -31,9 +31,8 @@ pub trait TargetWebNamespace {
     /// use web_ns::*;
     /// use web_ns::web::*;
     ///
-    /// let svg = html5::HtmlAttr::Svg;
-    /// assert_eq!(svg.origin_web_namespace().name(), "html5");
-    /// assert_eq!(svg.target_web_namespace().name(), "svg");
+    /// assert_eq!(html5::HtmlTag::Div.target_web_namespace().name(), "html5");
+    /// assert_eq!(html5::HtmlTag::Svg.target_web_namespace().name(), "svg");
     /// ```
     ///
     fn target_web_namespace(&self) -> &'static dyn WebNamespace;

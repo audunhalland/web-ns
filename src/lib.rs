@@ -20,6 +20,14 @@
 //! assert_eq!(class, div.attr_by_property("className").unwrap());
 //! ```
 //!
+//! The [crate::web] module has support for dynamically changing namespaces:
+//! ```
+//! use web_ns::*;
+//!
+//! let svg: web::Tag = html5::HTML5_NS.tag_by_local_name("SVG").unwrap();
+//! assert_eq!(svg, web::Tag::Svg(svg::SvgTag::Svg));
+//! ```
+//!
 
 #![forbid(unsafe_code)]
 

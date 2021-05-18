@@ -41,8 +41,11 @@ impl crate::TagByLocalName<tags::HtmlTag> for Html5Namespace {
 
 impl crate::TagByLocalName<crate::web::Tag> for Html5Namespace {
     fn tag_by_local_name(&self, local_name: &str) -> Result<crate::web::Tag, Error> {
-        self.tag_by_local_name(local_name)
-            .map(|tag| super::web::Tag::Html5(tag))
+        self.tag_by_local_name(local_name).map(|tag| match tag {
+            // Dynamically changing namespaces:
+            tags::HtmlTag::Svg => crate::web::Tag::Svg(crate::svg::SvgTag::Svg),
+            html_tag => crate::web::Tag::Html5(html_tag),
+        })
     }
 }
 

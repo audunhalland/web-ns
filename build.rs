@@ -409,30 +409,6 @@ mod enums {
             writeln!(f, "}}")?;
         }
 
-        if entity_kind == EntityKind::Tag {
-            writeln!(
-                f,
-                "impl crate::web::TargetWebNamespace for {} {{",
-                enum_ident
-            )?;
-            writeln!(
-                f,
-                "    fn target_web_namespace(&self) -> &'static dyn crate::web::WebNamespace {{"
-            )?;
-            codegen_enum_match_self(
-                f,
-                defs.iter().filter_map(|def| match &def.kind {
-                    DefKind::Static(static_kind) => Some((
-                        static_kind.variant_ident.as_ref(),
-                        format!("&{}::{}", def.target_ns.path, def.target_ns.name),
-                    )),
-                    DefKind::DataAttr => None,
-                }),
-            )?;
-            writeln!(f, "    }}")?;
-            writeln!(f, "}}")?;
-        }
-
         Ok(())
     }
 
